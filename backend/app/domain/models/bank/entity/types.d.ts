@@ -1,0 +1,3 @@
+type BankRawEntity = {
+  name: string;
+};
