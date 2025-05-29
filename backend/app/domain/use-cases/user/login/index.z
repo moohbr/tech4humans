@@ -1,0 +1,93 @@
+import { LoginUseCase } from "./index";
+import { LoginRequest } from "./request";
+import { UserRepositoryInterface } from "@models/user/repository/interfaces";
+import { AuthServiceInterface } from "@services/auth/interfaces";
+import { UserEntity } from "@models/user/entity";
+import { InvalidCredentialsError } from "@errors/user/invalid-credentials-error";
+import { UserId } from "@models/user/value-objects/id";
+
+describe("LoginUseCase", () => {
+  let useCase: LoginUseCase;
+  let userRepository: jest.Mocked<UserRepositoryInterface>;
+  let authService: jest.Mocked<AuthServiceInterface>;
+  let mockRequest: LoginRequest;
+
+  beforeEach(() => {
+    userRepository = {
+      findByEmail: jest.fn(),
+    } as any;
+
+    authService = {
+      generateToken: jest.fn(),
+    } as any;
+
+    useCase = new LoginUseCase(userRepository, authService);
+
+    mockRequest = {
+      getEmail: jest.fn().mockReturnValue("test@example.com"),
+      getPassword: jest.fn().mockReturnValue("password123"),
+    };
+  });
+
+  it("should successfully login a user", async () => {
+    // Arrange
+    const mockUser = {
+      getId: () => ({ getValue: () => 1 }),
+      getPasswordHash: jest.fn().mockReturnValue("$2b$10$hashedpassword"),
+    } as any as UserEntity;
+
+    userRepository.findByEmail.mockResolvedValue(mockUser);
+    authService.generateToken.mockReturnValue("jwt.token.here");
+
+    // Act
+    const result = await useCase.execute(mockRequest);
+
+    // Assert
+    expect(result.isSuccess()).toBe(true);
+    expect(result.getMessage()).toBe("Login successful");
+    const authResult = result.getAuthResult();
+    expect(authResult.token).toBe("jwt.token.here");
+    expect(authResult.user).toBe(mockUser);
+  });
+
+  it("should fail if user not found", async () => {
+    // Arrange
+    userRepository.findByEmail.mockResolvedValue(null);
+
+    // Act
+    const result = await useCase.execute(mockRequest);
+
+    // Assert
+    expect(result.isSuccess()).toBe(false);
+    expect(result.getMessage()).toContain("Invalid credentials");
+  });
+
+  it("should fail if password is incorrect", async () => {
+    // Arrange
+    const mockUser = {
+      getPasswordHash: jest.fn().mockReturnValue("$2b$10$differenthash"),
+    } as any as UserEntity;
+
+    userRepository.findByEmail.mockResolvedValue(mockUser);
+
+    // Act
+    const result = await useCase.execute(mockRequest);
+
+    // Assert
+    expect(result.isSuccess()).toBe(false);
+    expect(result.getMessage()).toContain("Invalid credentials");
+  });
+
+  it("should fail with validation error for invalid email", async () => {
+    // Arrange
+    mockRequest.getEmail.mockReturnValue("invalid-email");
+
+    // Act
+    const result = await useCase.execute(mockRequest);
+
+    // Assert
+    expect(result.isSuccess()).toBe(false);
+    expect(result.getMessage()).toBe("Validation failed");
+  });
+
+}); 
