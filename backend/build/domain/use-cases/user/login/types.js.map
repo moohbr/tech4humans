@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../../../app/domain/use-cases/user/login/types.ts"],"sourcesContent":["import { UserEntity } from \"@models/user/entity\";\n\nexport type AuthResult = {\n  token: string;\n  user: UserEntity;\n}"],"mappings":";;;;;;;;;;;;;;;;AAEA;;","names":[]}

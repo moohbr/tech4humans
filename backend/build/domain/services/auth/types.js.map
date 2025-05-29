@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../../app/domain/services/auth/types.ts"],"sourcesContent":["import { UserEntity } from \"@models/user/entity\";\n\nexport type TokenPayload = {\n  userId:   Pick<ReturnType<UserEntity[\"toPersistence\"]>, \"id\">;\n};"],"mappings":";;;;;;;;;;;;;;;;AAEA;;","names":[]}

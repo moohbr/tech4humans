@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../../app/infrastructure/http/server/interfaces.ts"],"sourcesContent":["export interface IServer {\n    start(): Promise<void>;\n}"],"mappings":";;;;;;;;;;;;;;;;AAAA;;","names":[]}

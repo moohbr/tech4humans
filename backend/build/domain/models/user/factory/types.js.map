@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../../../app/domain/models/user/factory/types.ts"],"sourcesContent":["import { UserEntity } from \"@models/user/entity\";\n\nexport type CreateUserData = Pick<\n  ReturnType<UserEntity[\"toPersistence\"]>,\n  \"name\" | \"email\" | \"passwordHash\"\n>;\n"],"mappings":";;;;;;;;;;;;;;;;AAEA;;","names":[]}
