@@ -1,1 +1,0 @@
-{"version":3,"sources":["../../../../../app/domain/use-cases/banks/get-all/interfaces.ts"],"sourcesContent":["import { GetAllBanksResponse } from \"@useCases/banks/get-all/response\";\n\nexport interface GetAllBanksUseCaseInterface {\n  execute(): Promise<GetAllBanksResponse>;\n}"],"mappings":";;;;;;;;;;;;;;;;AAEA;;","names":[]}

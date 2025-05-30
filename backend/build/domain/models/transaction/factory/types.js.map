@@ -1,1 +1,0 @@
-{"version":3,"sources":["../../../../../app/domain/models/transaction/factory/types.ts"],"sourcesContent":["import { TransactionEntity } from \"@models/transaction/entity\";\n\nexport type CreateTransactionData = Omit<\n  ReturnType<TransactionEntity[\"toPersistence\"]>,\n  \"id\" | \"createdAt\" | \"updatedAt\"\n>;\n"],"mappings":";;;;;;;;;;;;;;;;AAEA;;","names":[]}
