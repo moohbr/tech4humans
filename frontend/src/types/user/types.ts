@@ -1,3 +1,5 @@
+import { Account } from "../account/types";
+
 export type User = {
     id: number;
     name: string;
@@ -6,6 +8,17 @@ export type User = {
     createdAt: Date;
 }
 
-export type CreateUserDTO = Partial<Pick<User, "name" | "email" | "password">>
+export type CreateUserDTO = {
+    user: Pick<User, "name" | "email" | "password">;
+    account: Pick<Account, "name" | "type" | "balance" | "bank">;
+}
+
+export type CreateUserResponse = User;
+
+export type LoginUserDTO = Pick<User, "email" | "password">;
+
+export type LoginUserResponse = {
+    token: string;
+}
 
 export type UpdateUserDTO = Partial<Pick<User, "name" | "email" | "password">>

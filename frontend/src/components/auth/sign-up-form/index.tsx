@@ -40,15 +40,11 @@ export function SignUpForm({ onSubmit, isLoading = false }: SignUpFormProps) {
   }, []);
 
   const handleSubmit = useCallback((formData: SignUpFormValues) => {
-    console.log('formData', formData);
-    console.log('form.formState.isValid', form.formState.isValid);
-    console.log('form.formState.errors', form.formState.errors);
-    
     if (!form.formState.isValid) return;
 
     const result = signUpSchema.pick({ user: true }).safeParse(formData);
     if (!result.success) {
-      console.log('result.error', result.error);
+      console.error('result.error', result.error);
 
       toast.error('Erro ao validar os dados', {
         description: result.error.errors.map(error => error.message).join(', '),
@@ -170,7 +166,10 @@ export function SignUpForm({ onSubmit, isLoading = false }: SignUpFormProps) {
 
           {!form.formState.isValid && (
             <div className="text-xs text-red-400 mt-2 text-center">
-              Por favor, preencha todos os campos obrigatórios
+              Por favor, preencha todos os campos obrigatórios,
+              {form.formState.errors.user?.name?.message}
+              {form.formState.errors.user?.email?.message}
+              {form.formState.errors.user?.password?.message}
             </div>
           )}
         </form>

@@ -42,7 +42,7 @@ export function SignInForm() {
         password: data.password,
       });
 
-      login(response.data.token);
+      login(response?.data?.token ?? "");
       toast.success("Login realizado com sucesso!");
 
       setTimeout(() => {
