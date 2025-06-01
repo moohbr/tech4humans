@@ -1,15 +1,14 @@
-import type { LoggedInUser } from "@/types/user";
 import type { QueryClient } from "@tanstack/react-query";
 import {
   Outlet,
   createRootRouteWithContext,
-  redirect,
+  // redirect,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
-  user: LoggedInUser | null | undefined;
+  // user: LoggedInUser | null | undefined;
 }>()({
   component: RootComponent,
   // async beforeLoad({ context: { user }, location }) {

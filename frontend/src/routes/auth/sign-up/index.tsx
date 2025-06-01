@@ -110,12 +110,16 @@ function SignUp() {
                 name: "",
                 type: AccountType.POUPANCA,
                 balance: 0,
-                bank: { name: "" },
+                bankName: "",
               }}
               onSubmit={
                 (data) => {
-                  console.log('data', data);
-                  onAccountInfoSubmit(data.account);
+                  onAccountInfoSubmit({
+                    type: data.account.type,
+                    name: data.account.name,
+                    balance: data.account.balance,
+                    bankName: data.account.bank.name
+                  });
                 }
               }
               nextButtonText="Criar conta"
