@@ -2,6 +2,7 @@ import { FormField, FormLabel, FormControl, FormItem, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { useCallback } from "react";
 import { FormFieldProps } from "../types";
+import { AccountSchemas } from "@/types/account/schema";
 
 export function BalanceField({ form, isReadOnly, isLoading }: FormFieldProps) {
     const formatCurrency = useCallback((value: string) => {
@@ -19,6 +20,16 @@ export function BalanceField({ form, isReadOnly, isLoading }: FormFieldProps) {
       <FormField
       control={form.control}
       name="balance"
+      rules={{
+        required: 'O saldo inicial é obrigatório',
+        validate: (value: number) => {
+          const result = AccountSchemas.balanceSchema.safeParse(value);
+          if (!result.success) {
+            return result.error.message;
+          }
+          return true;
+        },
+      }}    
       render={({ field, fieldState }) => (
         <FormItem>
           <FormLabel className="text-sm font-medium text-zinc-300 mb-1.5 block">

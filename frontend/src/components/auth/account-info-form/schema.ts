@@ -6,9 +6,7 @@ export const accountInfoFormSchema = z.object({
   name: AccountSchemas.nameSchema,
   type: AccountSchemas.accountTypeSchema,
   balance: AccountSchemas.balanceSchema,
-  bank: z.object({
-    name: BankSchemas.nameSchema,
-  }),
+  bankName: BankSchemas.nameSchema,
 });
 
 

@@ -1,34 +1,33 @@
 import { FormField, FormLabel, FormControl, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { memo } from "react";
-import { FormFieldProps } from "../types";
-import { AccountSchemas } from "@/types/account/schema";
+import { FormFieldProps } from "./types";
+import { UserSchemas } from "@/types/user/schema";
 
-export const AccountNameField = memo(({ form, isReadOnly, isLoading }: FormFieldProps) => {
+export function NameField({ form, isLoading }: FormFieldProps) {
   return (
     <FormField
       control={form.control}
-      name="name"
+      name="user.name"
       rules={{
-        required: 'O nome da conta é obrigatório',
+        required: 'O nome é obrigatório',
         validate: (value: string) => {
-          const result = AccountSchemas.nameSchema.safeParse(value);
+          const result = UserSchemas.nameSchema.safeParse(value);
           if (!result.success) {
             return result.error.message;
           }
           return true;
         },
-      }}    
+      }}
       render={({ field, fieldState }) => (
         <FormItem>
           <FormLabel className="text-sm font-medium text-zinc-300 mb-1.5 block">
-            Nome da Conta
+            Nome Completo
           </FormLabel>
           <FormControl>
             <Input
               className="bg-white dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700/50 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              placeholder="Ex: Conta Principal, Poupança"
-              disabled={isReadOnly || isLoading}
+              placeholder="Digite seu nome completo"
+              disabled={isLoading}
               {...field}
             />
           </FormControl>
@@ -41,5 +40,4 @@ export const AccountNameField = memo(({ form, isReadOnly, isLoading }: FormField
       )}
     />
   );
-});
-  
+}

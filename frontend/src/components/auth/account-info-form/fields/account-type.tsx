@@ -5,6 +5,7 @@ import { FormFieldProps } from "../types";
 import { ACCOUNT_TYPE_LABELS } from "@/constants/account-type-labels";
 import { AccountType } from "@/types/account/enum";
 import { Input } from "@/components/ui/input";
+import { AccountSchemas } from "@/types/account/schema";
 
 export function AccountTypeField({ form, isReadOnly, isLoading }: FormFieldProps) {
     const accountTypeOptions = useMemo(() =>
@@ -17,6 +18,16 @@ export function AccountTypeField({ form, isReadOnly, isLoading }: FormFieldProps
       <FormField
       control={form.control}
       name="type"
+      rules={{
+        required: 'O tipo de conta é obrigatório',
+        validate: (value: string) => {
+          const result = AccountSchemas.accountTypeSchema.safeParse(value);
+        if (!result.success) {
+          return result.error.message;
+        }
+        return true;
+        },
+      }}
       render={({ field, fieldState }) => (
         <FormItem>
           <FormLabel className="text-sm font-medium text-zinc-300 mb-1.5 block">

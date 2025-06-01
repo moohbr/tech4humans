@@ -1,27 +1,18 @@
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Form } from "@/components/ui/form";
 import { useLogin } from "@/hooks/mutations/use-login";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "@tanstack/react-router";
-import { Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/auth";
 import { SignInFormValues } from "./types";
 import { signInSchema } from "./schema";
+import { EmailField } from "./fields/email-field";
+import { PasswordField } from "./fields/password-field";
 
 
 export function SignInForm() {
-  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -61,66 +52,9 @@ export function SignInForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-4">
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field, fieldState }) => (
-              <FormItem>
-                <FormLabel className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                  Email
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    className="bg-white dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700/50 text-zinc-900 dark:text-zinc-100"
-                    placeholder="seu@email.com"
-                    type="email"
-                    autoComplete="email"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage className="text-sm text-red-500">
-                  {fieldState.error?.message}
-                </FormMessage>
-              </FormItem>
-            )}
-          />
+          <EmailField form={form} isLoading={isPending} />
+          <PasswordField form={form} isLoading={isPending} />
 
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field, fieldState }) => (
-              <FormItem>
-                <FormLabel className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                  Senha
-                </FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Input
-                      className="bg-white dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700/50 text-zinc-900 dark:text-zinc-100"
-                      placeholder="••••••••"
-                      type={showPassword ? "text" : "password"}
-                      autoComplete="current-password"
-                      {...field}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-500 dark:hover:text-zinc-300 focus:outline-none"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
-                  </div>
-                </FormControl>
-                <FormMessage className="text-sm text-red-500">
-                  {fieldState.error?.message}
-                </FormMessage>
-              </FormItem>
-            )}
-          />
           <div className="flex justify-end">
             <button
               type="button"

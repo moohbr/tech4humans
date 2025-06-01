@@ -1,6 +1,4 @@
-import { motion } from "framer-motion";
-
-
+import { motion } from "motion/react";
 
 export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
   return (

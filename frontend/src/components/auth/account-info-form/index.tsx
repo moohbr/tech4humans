@@ -27,12 +27,10 @@ export function AccountInfoForm({
   const form = useForm<AccountInfoFormValues>({
     resolver: zodResolver(accountInfoFormSchema),
     defaultValues: {
-      name: data.account?.name || "",
+      name: data.account?.name || "Nome não informado",
       type: data.account?.type || AccountType.POUPANCA,
       balance: data.account?.balance || 0,
-      bank: {
-        name: data.account?.bank?.name || "",
-      },
+      bankName: data.account?.bankName || "Nome do banco não informado",
     },
     mode: 'onChange',
   });
@@ -59,7 +57,12 @@ export function AccountInfoForm({
 
     onSubmit?.({
       user: data.user,
-      account: formData,
+      account: {
+        ...formData,
+        bank: {
+          name: formData.bankName
+        }
+      },
     });
   }, [data.user, updateData, form.formState.isValid, onSubmit]);
 
