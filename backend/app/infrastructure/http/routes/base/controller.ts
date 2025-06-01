@@ -1,3 +1,5 @@
+import { DomainError } from "@domain/errors/domain-error";
+import { ValidationError } from "@domain/errors/validation-error";
 import { logger } from "@infrastructure/logger";
 import { Response } from "express";
 import { ZodError } from "zod";
@@ -23,52 +25,14 @@ export abstract class BaseController {
   protected sendErrorResponse(
     res: Response,
     message: string,
-    errors: string[] = [],
+    errors: Error[] = [],
     statusCode: number = 422,
   ): void {
-    logger.error("BaseController.sendErrorResponse", message);
+    logger.error(this.constructor.name, { message, errors, statusCode });
     res.status(statusCode).json({
       message,
       errors,
     });
-  }
-
-  protected getErrorStatusCode(
-    message: string,
-    hasValidationErrors: boolean,
-  ): number {
-    if (hasValidationErrors) return 400;
-
-    const lowerMessage = message.toLowerCase();
-
-    if (
-      lowerMessage.includes("invalid credentials") ||
-      lowerMessage.includes("authentication failed")
-    ) {
-      return 401;
-    }
-
-    if (
-      lowerMessage.includes("unauthorized") ||
-      lowerMessage.includes("permission") ||
-      lowerMessage.includes("account locked") ||
-      lowerMessage.includes("account disabled")
-    ) {
-      return 403;
-    }
-
-    if (lowerMessage.includes("not found")) {
-      return 404;
-    }
-
-    if (
-      lowerMessage.includes("already exists") ||
-      lowerMessage.includes("duplicate")
-    ) {
-      return 409;
-    }
-
-    return 422;
   }
 
   protected handleControllerError(
@@ -76,25 +40,43 @@ export abstract class BaseController {
     res: Response,
     controllerName: string,
   ): void {
+    logger.info("Error type", { error: error instanceof Error ? error.constructor.name : "Unknown error" });
     if (error instanceof ZodError) {
+      logger.info("ZodError", { error: error.message });
       const errors = error.errors.map((err) => ({
         field: err.path.join("."),
         message: err.message,
         code: err.code,
       }));
-      res.status(400).json({
-        success: false,
-        message: "Invalid request format",
-        errors,
-      });
+      this.sendErrorResponse(
+        res,
+        "Invalid request format",
+        errors.map((err) => new ValidationError(err.message, [err.code.toString()])),
+        ValidationError.prototype.getStatusCode(),
+      );
       return;
     }
 
+    if (error instanceof DomainError) {
+      logger.info("DomainError", { error: error.message, statusCode: error.getStatusCode() });
+      this.sendErrorResponse(
+        res,
+        error.message,
+        [error],
+        error.getStatusCode(),
+      );
+      return;
+    }
+
+
     logger.error(`${controllerName} Error:`, error);
-    res.status(500).json({
-      success: false,
-      message: error instanceof Error ? error.message : "Internal server error",
-    });
+    this.sendErrorResponse(
+      res,
+      error instanceof Error ? error.message : "Internal server error",
+      [error as Error],
+      500,
+    );
+    return;
   }
 
   protected validateRequiredParam(
@@ -106,8 +88,8 @@ export abstract class BaseController {
       this.sendErrorResponse(
         res,
         `${paramName} is required`,
-        [`${paramName} parameter is missing`],
-        400,
+        [new ValidationError(`${paramName} parameter is missing`)],
+        422,
       );
       return false;
     }

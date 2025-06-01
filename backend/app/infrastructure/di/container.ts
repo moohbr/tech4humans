@@ -20,7 +20,7 @@ import { UpdateAccountOfUserController } from "@infrastructure/http/routes/v1/ac
 import { GetAllBanksController } from "@infrastructure/http/routes/v1/banks/controllers/get-all-banks";
 // Transactions
 import { AddTransactionToUserController } from "@infrastructure/http/routes/v1/transaction/controllers/add-to-a-user";
-import { GetAllTransactionsOfUserController } from "@infrastructure/http/routes/v1/transaction/controllers/get-all-of-user";
+import { QueryTransactionController } from "@infrastructure/http/routes/v1/transaction/controllers/query";
 // Users
 import { CreateUserController } from "@infrastructure/http/routes/v1/users/controllers/create";
 import { DeleteUserController } from "@infrastructure/http/routes/v1/users/controllers/delete";
@@ -42,8 +42,8 @@ import { GetAllBanksUseCaseInterface } from "@useCases/banks/get-all/interfaces"
 // Transactions
 import { AddTransactionToUserUseCase } from "@useCases/transaction/add-to-a-user";
 import { AddTransactionToUserUseCaseInterface } from "@useCases/transaction/add-to-a-user/interfaces";
-import { GetAllOfUserUseCase } from "@useCases/transaction/get-all-of-user";
-import { GetAllOfUserUseCaseInterface } from "@useCases/transaction/get-all-of-user/interfaces";
+import { QueryTransactionUseCase } from "@useCases/transaction/query";
+import { QueryTransactionUseCaseInterface } from "@useCases/transaction/query/interfaces";
 // Users
 import { CreateUserUseCase } from "@useCases/user/create";
 import { CreateUserUseCaseInterface } from "@useCases/user/create/interfaces";
@@ -158,8 +158,8 @@ export class DIContainer {
       ),
     );
     this.dependencies.set(
-      "GetAllTransactionsOfUserUseCase",
-      new GetAllOfUserUseCase(
+      "QueryTransactionUseCase",
+      new QueryTransactionUseCase(
         this.get<TransactionRepositoryInterface>("TransactionRepository"),
       ),
     );
@@ -227,12 +227,11 @@ export class DIContainer {
       ),
     );
     this.dependencies.set(
-      "GetAllTransactionsOfUserController",
-      new GetAllTransactionsOfUserController(
-        this.get<GetAllOfUserUseCaseInterface>("GetAllTransactionsOfUserUseCase"),
+      "QueryTransactionController",
+      new QueryTransactionController(
+        this.get<QueryTransactionUseCaseInterface>("QueryTransactionUseCase"),
       ),
     );
-
   }
 
   public get<T>(key: string): T {
