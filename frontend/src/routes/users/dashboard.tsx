@@ -7,11 +7,20 @@ import { Select, SelectOption } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createAccount, updateAccount } from '@/fetchers/accounts'
 import { useForm } from 'react-hook-form'
-import { Account, AccountType, CreateAccountDTO, UpdateAccountDTO } from '@/types/account'
-import { useAccounts } from '@/hooks/queries/useAccounts'
-import { CreateTransactionDTO } from '@/types/transaction'
+import { Account, CreateAccountDTO, UpdateAccountDTO } from '@/types/account/types'
+import { useAccounts } from '@/hooks/queries/use-accounts'
+import { CreateTransactionDTO } from '@/types/transaction/types'
+import { createAccount } from '@/fetchers/accounts/create'
+import { AccountType } from '@/types/account/enum'
+import { updateAccount } from '@/fetchers/accounts/update'
+import { createTransaction } from '@/fetchers/transactions/create'
+import { TransactionType } from '@/types/transaction/enum'
+import { toast } from 'sonner'
+import { useTransactions } from '@/hooks/queries/use-transactions'
+import { format } from 'date-fns'
+import { useAuth } from '@/contexts/auth'
+import { useNavigate } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/users/dashboard')({
   component: RouteComponent,
@@ -25,14 +34,18 @@ function RouteComponent() {
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null)
 
   const queryClient = useQueryClient()
-  const { accounts, isLoading: isLoadingAccounts } = useAccounts()
+  const { accounts, isLoading: isLoadingAccounts } = useAccounts(1)
+  const { transactions, isLoading: isLoadingTransactions } = useTransactions({ userId: 1 })
 
   const createAccountForm = useForm<CreateAccountDTO>()
   const updateAccountForm = useForm<UpdateAccountDTO>()
   const transactionForm = useForm<CreateTransactionDTO>()
 
   const createAccountMutation = useMutation({
-    mutationFn: (data: CreateAccountDTO) => createAccount(data),
+    mutationFn: (data: CreateAccountDTO) => createAccount(1, {
+      bankName: data.bank?.name,
+      ...data
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accounts'] })
       setIsNewAccountDialogOpen(false)
@@ -48,7 +61,41 @@ function RouteComponent() {
     },
   })
 
+  const createTransactionMutation = useMutation({
+    mutationFn: (data: CreateTransactionDTO) => {
+      if (!data.sourceAccountId || !data.destinationAccountId) {
+        throw new Error('Source and destination accounts are required')
+      }
+      return createTransaction(
+        data.sourceAccountId,
+        data.destinationAccountId,
+        {
+          type: TransactionType.TRANSFERENCIA,
+          amount: data.amount || 0,
+          description: data.description,
+        }
+      )
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accounts'] })
+      setIsTransactionDialogOpen(false)
+      toast.success('Transaction completed successfully')
+      transactionForm.reset()
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Failed to create transaction')
+    },
+  })
+
   const totalBalance = accounts?.reduce((sum: number, acc: Account) => sum + acc.balance, 0) || 0
+
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate({ to: '/auth/sign-in' })
+  }
 
   const handleEditAccount = (acc: Account) => {
     setSelectedAccount(acc)
@@ -61,7 +108,7 @@ function RouteComponent() {
   }))
 
   const accountOptions: SelectOption[] = accounts?.map((acc: Account) => ({
-    label: `${acc.bankName} - $${acc.balance}`,
+    label: `${acc.bank.name} - $${acc.balance}`,
     value: acc.id.toString(),
   })) || []
 
@@ -69,7 +116,7 @@ function RouteComponent() {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Meu Dashboard</h1>
-        <Button variant="destructive" onClick={() => {}}>
+        <Button variant="destructive" onClick={handleLogout}>
           Logout
         </Button>
       </div>
@@ -110,7 +157,7 @@ function RouteComponent() {
                   className="flex items-center justify-between p-4 border rounded-lg"
                 >
                   <div>
-                    <h3 className="font-semibold">{acc.bankName}</h3>
+                    <h3 className="font-semibold">{acc.bank.name}</h3>
                     <div className="flex items-center space-x-2">
                       <Badge>{acc.type}</Badge>
                       <span className="text-gray-600">
@@ -134,6 +181,45 @@ function RouteComponent() {
       <div className="bg-white rounded-lg shadow">
         <div className="p-6">
           <h2 className="text-xl font-semibold mb-4">Últimas Transações</h2>
+          {isLoadingTransactions ? (
+            <div className="text-center">Carregando transações...</div>
+          ) : transactions && transactions.length > 0 ? (
+            <div className="space-y-4">
+              {transactions.map((transaction) => {
+                const sourceAccount = accounts?.find(acc => acc.id === transaction.sourceAccountId)
+                const destinationAccount = accounts?.find(acc => acc.id === transaction.destinationAccountId)
+                
+                return (
+                  <div
+                    key={transaction.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <Badge>{transaction.type}</Badge>
+                        <span className="text-sm text-gray-600">
+                          {format(new Date(transaction.transactionDate), 'dd/MM/yyyy HH:mm')}
+                        </span>
+                      </div>
+                      <p className="text-sm mt-1">
+                        De: {sourceAccount?.bank.name} → Para: {destinationAccount?.bank.name}
+                      </p>
+                      {transaction.description && (
+                        <p className="text-sm text-gray-600 mt-1">{transaction.description}</p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <span className="text-lg font-semibold text-green-600">
+                        R$ {transaction.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="text-center text-gray-500">Nenhuma transação encontrada</div>
+          )}
         </div>
       </div>
       </div>
@@ -150,7 +236,7 @@ function RouteComponent() {
         <div className="space-y-4">
           <div>
             <label>Nome do Banco</label>
-            <Input {...createAccountForm.register('bankName')} required />
+            <Input {...createAccountForm.register('bank.name')} required />
           </div>
           <div>
             <label>Tipo de Conta</label>
@@ -183,29 +269,37 @@ function RouteComponent() {
     </DialogHeader>
     <Form {...transactionForm}>
       <form onSubmit={transactionForm.handleSubmit((data: CreateTransactionDTO) => {
-        setIsTransactionDialogOpen(false)
+        createTransactionMutation.mutate(data)
       })}>
         <div className="space-y-4">
           <div>
             <label>Conta de Origem</label>
             <Select
-              {...transactionForm.register('sourceAccountId')}
+              value={transactionForm.watch('sourceAccountId')?.toString()}
+              onChange={(value) => transactionForm.setValue('sourceAccountId', Number(value))}
               options={accountOptions}
+              placeholder="Selecione a conta de origem"
               required
             />
           </div>
           <div>
             <label>Conta de Destino</label>
             <Select
-              {...transactionForm.register('destinationAccountId')}
-              options={accountOptions}
+              value={transactionForm.watch('destinationAccountId')?.toString()}
+              onChange={(value) => transactionForm.setValue('destinationAccountId', Number(value))}
+              options={accountOptions.filter(opt => opt.value !== transactionForm.watch('sourceAccountId')?.toString())}
+              placeholder="Selecione a conta de destino"
               required
             />
           </div>
           <div>
             <label>Valor</label>
             <Input
-              {...transactionForm.register('amount', { valueAsNumber: true })}
+              {...transactionForm.register('amount', { 
+                valueAsNumber: true,
+                required: 'Valor é obrigatório',
+                min: { value: 0.01, message: 'Valor deve ser maior que zero' }
+              })}
               type="number"
               step="0.01"
               required
@@ -215,7 +309,12 @@ function RouteComponent() {
             <label>Descrição</label>
             <Input {...transactionForm.register('description')} required />
           </div>
-          <Button type="submit">Realizar Transação</Button>
+          <Button 
+            type="submit" 
+            disabled={createTransactionMutation.isPending}
+          >
+            {createTransactionMutation.isPending ? 'Processando...' : 'Realizar Transação'}
+          </Button>
         </div>
       </form>
     </Form>

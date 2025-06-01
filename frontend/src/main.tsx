@@ -4,8 +4,7 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "@/index.css";
-import AuthProvider from "./components/providers/auth-provider";
-import useAuth from "./components/providers/auth-provider/hooks/use-auth";
+import { AuthProvider } from "@/contexts/auth";
 import { routeTree } from "./routeTree.gen";
 
 const router = createRouter({
@@ -24,22 +23,16 @@ declare module "@tanstack/react-router" {
   }
 }
 
-function App() {
-  const { user } = useAuth();
-
-  return <RouterProvider router={router} context={{ user }} />;
-}
-
 const rootElement = document.getElementById("root") as HTMLElement;
 if (!rootElement.innerHTML) {
   const root = createRoot(rootElement);
   root.render(
     <StrictMode>
       <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <App />
-          </AuthProvider>
-\      </QueryClientProvider>
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
+      </QueryClientProvider>
     </StrictMode>,
   );
 }
