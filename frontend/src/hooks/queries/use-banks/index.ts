@@ -11,7 +11,6 @@ export function useBanks({ enabled = true } = {}) {
     staleTime: 5 * 60 * 1000,
   });
 
-  console.log(apiResponse?.message);
   return {
     banks: apiResponse?.data ?? [],
     isLoading,
