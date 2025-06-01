@@ -2,6 +2,7 @@ import { BaseController } from "@infrastructure/http/routes/base/controller";
 import { UpdateUserUseCaseInterface } from "@useCases/user/update/interfaces";
 import { UpdateUserRequest } from "@useCases/user/update/request";
 import { Request, Response } from "express";
+import { logger } from "@infrastructure/logger";
 
 export class UpdateUserController extends BaseController {
   constructor(private readonly updateUserUseCase: UpdateUserUseCaseInterface) {
@@ -26,16 +27,12 @@ export class UpdateUserController extends BaseController {
         return;
       }
 
-      const statusCode = this.getErrorStatusCode(
-        response.getMessage(),
-        response.hasErrors(),
-      );
-      this.sendErrorResponse(
-        res,
-        response.getMessage(),
-        response.getErrors(),
-        statusCode,
-      );
+      if (response.hasErrors()) {
+        for (const error of response.getErrors()) {
+          logger.error("Error", { error: error.message });
+        }
+        throw response.getErrors()[0];
+      }     
     } catch (error) {
       this.handleControllerError(error, res, "UpdateUserController");
     }

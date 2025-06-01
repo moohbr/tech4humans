@@ -1,9 +1,9 @@
 import { AccountRepositoryInterface } from "@models/account/repository/interfaces";
-import { ZodError } from "zod";
 import { DeleteAccountOfUserRequest } from "@useCases/account/delete-of-a-user/request";
 import { DeleteAccountOfUserUseCaseInterface } from "@useCases/account/delete-of-a-user/interfaces";
 import { DeleteAccountOfUserResponse } from "@useCases/account/delete-of-a-user/response";
 import { AccountNotFoundError } from "@domain/errors/account/account-not-found-error";
+import { logger } from "@infrastructure/logger";
 
 export class DeleteAccountOfUserUseCase implements DeleteAccountOfUserUseCaseInterface {
   constructor(
@@ -12,12 +12,33 @@ export class DeleteAccountOfUserUseCase implements DeleteAccountOfUserUseCaseInt
 
   public async execute(request: DeleteAccountOfUserRequest): Promise<DeleteAccountOfUserResponse> {
     try {
-      const account = await this.accountRepository.findById(request.getAccountIdVO());
+      const accountId = request.getAccountIdVO();
+      logger.info("Starting account deletion process", {
+        accountId: accountId.getValue()
+      });
+
+      logger.debug("Verifying account existence");
+      const account = await this.accountRepository.findById(accountId);
       if (!account) {
-        throw new AccountNotFoundError(request.getAccountId().toString());
+        const error = new AccountNotFoundError(request.getAccountId().toString());
+        logger.error("Account not found during deletion", {
+          accountId: accountId.getValue(),
+          error: error.message
+        });
+        throw error;
       }
 
-      await this.accountRepository.delete(request.getAccountIdVO());
+      logger.debug("Deleting account", {
+        accountId: accountId.getValue(),
+        accountType: account.getType().getValue(),
+        balance: account.getBalance().getValue()
+      });
+
+      await this.accountRepository.delete(accountId);
+      
+      logger.info("Account deleted successfully", {
+        accountId: accountId.getValue()
+      });
   
       return DeleteAccountOfUserResponse.success();
     } catch (error) {
@@ -26,14 +47,8 @@ export class DeleteAccountOfUserUseCase implements DeleteAccountOfUserUseCaseInt
   }
 
   private handleError(error: unknown): DeleteAccountOfUserResponse {
-    if (error instanceof ZodError) {
-      const errors = error.errors.map(
-        (err) => `${err.path.join(".")}: ${err.message}`,
-      );
-      return DeleteAccountOfUserResponse.validationFailure(errors);
-    }
-
     const message = error instanceof Error ? error.message : "Unknown error occurred";
-    return DeleteAccountOfUserResponse.failure(message, []);
+    const errors = error instanceof Error ? [error] : [new Error(message)];
+    return DeleteAccountOfUserResponse.failure("Houve um erro ao deletar a conta", errors);
   }
 }

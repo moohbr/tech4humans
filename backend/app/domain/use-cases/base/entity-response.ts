@@ -4,7 +4,7 @@ export abstract class EntityResponse<T> extends BaseResponse<T> {
       data: T | null,
       success: boolean,
       message: string,
-      errors: string[],
+      errors: Error[],
       private readonly errorClass: new (message?: string) => Error
     ) {
       super(data, success, message, errors);

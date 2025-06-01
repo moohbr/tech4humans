@@ -34,6 +34,10 @@ export class UserPassword {
     return bcrypt.compare(plainPassword, this.value);
   }
 
+  public async compareWithHash(hashedPassword: string): Promise<boolean> {
+    return bcrypt.compare(this.value, hashedPassword);
+  }
+
   public getValue(): string {
     return this.value;
   }

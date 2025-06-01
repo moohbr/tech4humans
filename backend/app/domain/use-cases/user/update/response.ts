@@ -7,7 +7,7 @@ export class UpdateUserResponse extends EntityResponse<UserEntity> {
     user: UserEntity | null,
     success: boolean,
     message: string,
-    errors: string[]
+    errors: Error[]
   ) {
     super(user, success, message, errors, InvalidUserResponseError);
   }
@@ -16,11 +16,11 @@ export class UpdateUserResponse extends EntityResponse<UserEntity> {
     return new UpdateUserResponse(user, true, "User updated successfully", []);
   }
 
-  public static failure(message: string, errors: string[] = []): UpdateUserResponse {
+  public static failure(message: string, errors: Error[] = []): UpdateUserResponse {
     return new UpdateUserResponse(null, false, message, errors);
   }
 
-  public static validationFailure(errors: string[]): UpdateUserResponse {
+  public static validationFailure(errors: Error[]): UpdateUserResponse {
     return new UpdateUserResponse(null, false, "Validation failed", errors);
   }
 

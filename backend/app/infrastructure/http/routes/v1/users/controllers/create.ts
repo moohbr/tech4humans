@@ -11,17 +11,12 @@ export class CreateUserController extends BaseController {
 
   async handle(req: Request, res: Response): Promise<void> {
     try {
-      logger.info("Creating user", { body: req.body });
       const request = CreateUserRequest.createFromRaw({
         ...req.body,
       });
-      logger.info("Request created", { request });
       const response = await this.createUserUseCase.execute(request);
-      logger.info("Response", { response });
       if (response.isSuccess()) {
-        logger.info("Response is success", { response });
         const user = response.getUser();
-        logger.info("User", { user });
         this.sendSuccessResponse(
           res,
           response.getMessage(),
@@ -31,18 +26,12 @@ export class CreateUserController extends BaseController {
         return;
       }
 
-      logger.info("Response is not success", { response });
-      const statusCode = this.getErrorStatusCode(
-        response.getMessage(),
-        response.hasErrors(),
-      );
-      logger.info("Status code", { statusCode });
-      this.sendErrorResponse(
-        res,
-        response.getMessage(),
-        response.getErrors(),
-        statusCode,
-      );
+      if (response.hasErrors()) {
+        for (const error of response.getErrors()) {
+          logger.error("Error", { error: error.message });
+        }
+        throw response.getErrors()[0];
+      }
     } catch (error) {
       this.handleControllerError(error, res, "CreateUserController");
     }

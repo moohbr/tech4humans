@@ -7,7 +7,7 @@ export class LoginResponse extends EntityResponse<AuthResult> {
     authResult: AuthResult | null,
     success: boolean,
     message: string,
-    errors: string[]
+    errors: Error[]
   ) {
     super(authResult, success, message, errors, InvalidAuthResultError);
   }
@@ -16,11 +16,11 @@ export class LoginResponse extends EntityResponse<AuthResult> {
     return new LoginResponse(authResult, true, "Login successful", []);
   }
 
-  public static failure(message: string, errors: string[] = []): LoginResponse {
+  public static failure(message: string, errors: Error[] = []): LoginResponse {
     return new LoginResponse(null, false, message, errors);
   }
 
-  public static validationFailure(errors: string[]): LoginResponse {
+  public static validationFailure(errors: Error[]): LoginResponse {
     return new LoginResponse(null, false, "Validation failed", errors);
   }
 

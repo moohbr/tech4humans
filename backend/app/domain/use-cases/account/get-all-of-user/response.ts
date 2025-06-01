@@ -7,7 +7,7 @@ export class GetAllAccountsOfUserResponse extends EntityResponse<AccountEntity[]
     accounts: AccountEntity[],
     success: boolean,
     message: string,
-    errors: string[]
+    errors: Error[]
   ) {
     super(accounts, success, message, errors, AccountNotFoundError);
   }
@@ -16,11 +16,11 @@ export class GetAllAccountsOfUserResponse extends EntityResponse<AccountEntity[]
     return new GetAllAccountsOfUserResponse(accounts, true, "Accounts fetched successfully", []);
   }
 
-  public static failure(message: string, errors: string[]): GetAllAccountsOfUserResponse {
+  public static failure(message: string, errors: Error[]): GetAllAccountsOfUserResponse {
     return new GetAllAccountsOfUserResponse([], false, message, errors);
   }
 
-  public static validationFailure(errors: string[]): GetAllAccountsOfUserResponse {
+  public static validationFailure(errors: Error[]): GetAllAccountsOfUserResponse {
     return new GetAllAccountsOfUserResponse([], false, "Validation failed", errors);
   }
 } 

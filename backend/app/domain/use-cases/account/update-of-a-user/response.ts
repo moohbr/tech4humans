@@ -7,7 +7,7 @@ export class UpdateAccountOfUserResponse extends EntityResponse<AccountEntity> {
     account: AccountEntity | null,
     success: boolean,
     message: string,
-    errors: string[]
+    errors: Error[]
   ) {
     super(account, success, message, errors, AccountNotFoundError);
   }
@@ -16,11 +16,11 @@ export class UpdateAccountOfUserResponse extends EntityResponse<AccountEntity> {
     return new UpdateAccountOfUserResponse(account, true, "Account updated successfully", []);
   }
 
-  public static failure(message: string, errors: string[]): UpdateAccountOfUserResponse {
+  public static failure(message: string, errors: Error[]): UpdateAccountOfUserResponse {
     return new UpdateAccountOfUserResponse(null, false, message, errors);
   }
 
-  public static validationFailure(errors: string[]): UpdateAccountOfUserResponse {
+  public static validationFailure(errors: Error[]): UpdateAccountOfUserResponse {
     return new UpdateAccountOfUserResponse(null, false, "Validation failed", errors);
   }
 }

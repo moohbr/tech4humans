@@ -7,6 +7,7 @@ import { AuthServiceInterface } from "@services/auth/interfaces";
 import { UserEmail } from "@models/user/value-objects/email";
 import { UserPassword } from "@models/user/value-objects/password";   
 import { InvalidCredentialsError } from "@errors/user/invalid-credentials-error";
+import { logger } from "@infrastructure/logger";
 
 export class LoginUseCase implements LoginUseCaseInterface {
   constructor(
@@ -16,41 +17,62 @@ export class LoginUseCase implements LoginUseCaseInterface {
 
   public async execute(request: LoginRequest): Promise<LoginResponse> {
     try {
-      const email = UserEmail.create(request.getEmail());
-      const user = await this.userRepository.findByEmail(email);
+      logger.info("Starting login process", { email: request.getEmail().getValue() });
+
+      const user = await this.userRepository.findByEmail(request.getEmail());
 
       if (!user) {
-        throw new InvalidCredentialsError();
+        const error = new InvalidCredentialsError();
+        logger.error("User not found during login attempt", { 
+          email: request.getEmail().getValue(),
+          error: error.message, 
+          statusCode: error.getStatusCode() 
+        });
+        throw error;
       }
 
-      const userPassword = UserPassword.createFromHash(user.getPasswordHash());
-      const isValid = await userPassword.compare(request.getPassword());
+      logger.debug("User found, validating password", { userId: user.getId().getValue() });
+
+      const isValid = await request.getPassword().compareWithHash(user.getPasswordHash());
 
       if (!isValid) {
-        throw new InvalidCredentialsError();
+        const error = new InvalidCredentialsError(); 
+        logger.error("Invalid password during login attempt", { 
+          userId: user.getId().getValue(),
+          error: error.message, 
+          statusCode: error.getStatusCode() 
+        });
+        throw error;
       }
 
       const token = this.authService.generateToken(user.getId().getValue());
+      
+      logger.info("Login successful", { 
+        userId: user.getId().getValue(),
+        email: user.getEmail().getValue()
+      });
 
       return LoginResponse.success({
         token,
         user,
       });
     } catch (error) {
+      if (error instanceof InvalidCredentialsError) {
+        throw error;
+      }
+      
+      logger.error("Unexpected error during login", {
+        error: error instanceof Error ? error.message : "Unknown error",
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      
       return this.handleError(error);
     }
   }
 
   private handleError(error: unknown): LoginResponse {
-    if (error instanceof ZodError) {
-      const errors = error.errors.map(
-        (err) => `${err.path.join(".")}: ${err.message}`,
-      );
-      return LoginResponse.validationFailure(errors);
-    }
-
-    const message =
-      error instanceof Error ? error.message : "Unknown error occurred";
-    return LoginResponse.failure("Houve um erro ao fazer login", [message]);
+    const message = error instanceof Error ? error.message : "Unknown error occurred";
+    const errors = error instanceof Error ? [error] : [new Error(message)];
+    return LoginResponse.failure("Houve um erro ao fazer login", errors);
   }
 }

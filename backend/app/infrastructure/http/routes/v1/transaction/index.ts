@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { BaseRouter } from "@infrastructure/http/routes/base/router";
-import { GetAllTransactionsOfUserController } from "@infrastructure/http/routes/v1/transaction/controllers/get-all-of-user";
 import { AddTransactionToUserController } from "@infrastructure/http/routes/v1/transaction/controllers/add-to-a-user";
+import { QueryTransactionController } from "./controllers/query";
+
 
 export class TransactionRouter extends BaseRouter {
   private static instance: TransactionRouter;
@@ -14,8 +15,8 @@ export class TransactionRouter extends BaseRouter {
   }
 
   protected setupRoutes(): void {
-    this.setupGetAllTransactionsOfUserRoute();
     this.setupAddTransactionToUserRoute();
+    this.setupGetTransactionsRoute();
   }
 
   private setupAddTransactionToUserRoute(): void {
@@ -24,10 +25,11 @@ export class TransactionRouter extends BaseRouter {
       this.handleAddTransactionToUser.bind(this)
     );
   }
-  private setupGetAllTransactionsOfUserRoute(): void {
+
+  private setupGetTransactionsRoute(): void {
     this.router.get(
       "/user/:userId",
-      this.handleGetAllTransactionsOfUser.bind(this)
+      this.handleGetTransactions.bind(this)
     );
   }
 
@@ -41,12 +43,12 @@ export class TransactionRouter extends BaseRouter {
     await controller.handle(req, res);
   }
 
-  private async handleGetAllTransactionsOfUser(
+  private async handleGetTransactions(
     req: Request<{ userId: string }>,
     res: Response
-  ): Promise<void> {
-    const controller = this.container.get<GetAllTransactionsOfUserController>(
-      "GetAllTransactionsOfUserController"
+  ): Promise<void> {    
+    const controller = this.container.get<QueryTransactionController>(
+      "QueryTransactionController"
     );
     await controller.handle(req, res);
   }

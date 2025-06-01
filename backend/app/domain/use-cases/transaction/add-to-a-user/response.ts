@@ -7,7 +7,7 @@ export class AddTransactionToUserResponse extends EntityResponse<TransactionEnti
     transaction: TransactionEntity | null,
     success: boolean,
     message: string,
-    errors: string[]
+    errors: Error[]
   ) {
     super(transaction, success, message, errors, InvalidTransactionIdError);
   }
@@ -16,12 +16,12 @@ export class AddTransactionToUserResponse extends EntityResponse<TransactionEnti
     return new AddTransactionToUserResponse(transaction, true, "Transaction added successfully", []);
   }
 
-  public static failure(message: string, errors: string[] = []): AddTransactionToUserResponse {
-    const finalErrors = errors.length > 0 ? errors : (message ? [message] : []);
+  public static failure(message: string, errors: Error[] = []): AddTransactionToUserResponse {
+    const finalErrors = errors.length > 0 ? errors : (message ? [new Error(message)] : []);
     return new AddTransactionToUserResponse(null, false, message, finalErrors);
   }
 
-  public static validationFailure(errors: string[]): AddTransactionToUserResponse {
+    public static validationFailure(errors: Error[]): AddTransactionToUserResponse {
     return new AddTransactionToUserResponse(null, false, "Validation failed", errors);
   }
 

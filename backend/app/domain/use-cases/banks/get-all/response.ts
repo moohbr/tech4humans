@@ -7,7 +7,7 @@ export class GetAllBanksResponse extends EntityResponse<BankEntity[]> {
     banks: BankEntity[],
     success: boolean,
     message: string,
-    errors: string[]
+    errors: Error[]
   ) {
     super(banks, success, message, errors, BankNotFoundError);  
   }
@@ -16,12 +16,12 @@ export class GetAllBanksResponse extends EntityResponse<BankEntity[]> {
     return new GetAllBanksResponse(banks, true, "Banks fetched successfully", []);
   }
 
-  public static failure(message: string, errors: string[] = []): GetAllBanksResponse {
-    const allErrors = errors.length > 0 ? errors : [message];
+  public static failure(message: string, errors: Error[] = []): GetAllBanksResponse {
+    const allErrors = errors.length > 0 ? errors : [new Error(message)];
     return new GetAllBanksResponse([], false, message, allErrors);
   }
 
-  public static validationFailure(errors: string[]): GetAllBanksResponse {
+  public static validationFailure(errors: Error[]): GetAllBanksResponse {
     return new GetAllBanksResponse([], false, "Validation failed", errors);
   }
 

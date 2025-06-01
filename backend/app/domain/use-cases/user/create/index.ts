@@ -25,69 +25,89 @@ export class CreateUserUseCase implements CreateUserUseCaseInterface {
     request: CreateUserRequest,
   ): Promise<CreateUserResponse> {
     try {
-      const name = request.getName();
-      const email = request.getEmail();
-      const password = request.getPassword();
-      const bankName = request.getBankName();
-      const accountType = request.getAccountType();
-      const accountBalance = request.getAccountBalance();
-      const accountName = request.getAccountName();
+      logger.info("Starting user creation process");
 
-      const userExists = await this.userRepository.exists(email);
+      const userExists = await this.userRepository.exists(request.getEmail());
       if (userExists) {
-        throw new UserAlreadyExistsError(email.getValue());
+        const error = new UserAlreadyExistsError(request.getEmail().getValue());
+        logger.error("User already exists", {
+          email: request.getEmail().getValue(),
+          error: error.message
+        });
+        throw error;
       }
 
-      const passwordVO = UserPassword.create(password.getValue());
-      const hashedPassword = await passwordVO.hash();
-
-      const bankNameVO = BankName.create(bankName.getValue());
-      const bank = await this.bankRepository.findByName(bankNameVO);
+      logger.debug("Checking bank existence", { bankName: request.getBankName().getValue() });
+      const bank = await this.bankRepository.findByName(request.getBankName());
       if (!bank) {
-        throw new BankNotFoundError(bankName.getValue());
+        const error = new BankNotFoundError(request.getBankName().getValue());
+        logger.error("Bank not found during user creation", {
+          bankName: request.getBankName().getValue(),
+          error: error.message
+        });
+        throw error;
       }
 
-      let user = UserEntity.create(
-        name.getValue(),
-        email.getValue(),
-        hashedPassword.getValue(),
+      const hashedPassword = await request.getPassword().hash();
+
+      const user = UserEntity.create(
+        request.getName().getValue(),
+        request.getEmail().getValue(),
+        hashedPassword.getValue()
       );
 
-      await AppDataSource.transaction(async (manager) => {
+      logger.info("Starting transaction for user and account creation");
+
+      const createdUser = await AppDataSource.transaction(async (manager) => {
         const transactionalUserRepo = this.userRepository.withTransaction(manager);
         const transactionalAccountRepo = this.accountRepository.withTransaction(manager);
 
-        user = await transactionalUserRepo.create(user);
-        logger.info("User created in transaction");
+        const newUser = await transactionalUserRepo.create(user);
+        logger.info("User created in transaction", {
+          userId: newUser.getId().getValue(),
+          email: newUser.getEmail().getValue()
+        });
 
         const account = AccountEntity.create(
-          accountName.getValue(),
-          accountType.getValue(),
-          accountBalance.getValue(),
-          user.getId().getValue(),
-          bank.getName().getValue(),
+          request.getAccountName().getValue(),
+          request.getAccountType().getValue(),
+          request.getAccountBalance().getValue(),
+          newUser.getId().getValue(),
+          bank.getName().getValue()
         );
 
-        await transactionalAccountRepo.create(account);
-        logger.info("Account created in transaction");
+        const createdAccount = await transactionalAccountRepo.create(account);
+        logger.info("Account created in transaction", {
+          accountId: createdAccount.getId().getValue(),
+          userId: newUser.getId().getValue()
+        });
+
+        return newUser;
       });
 
-      return CreateUserResponse.success(user);
+      logger.info("User creation process completed successfully", {
+        userId: createdUser.getId().getValue(),
+        email: createdUser.getEmail().getValue()
+      });
+
+      return CreateUserResponse.success(createdUser);
     } catch (error) {
+      if (error instanceof UserAlreadyExistsError || error instanceof BankNotFoundError) {
+        throw error;
+      }
+
+      logger.error("Unexpected error during user creation", {
+        error: error instanceof Error ? error.message : "Unknown error",
+        stack: error instanceof Error ? error.stack : undefined
+      });
+
       return this.handleError(error);
     }
   }
 
   private handleError(error: unknown): CreateUserResponse {
-    if (error instanceof ZodError) {
-      const errors = error.errors.map(
-        (err) => `${err.path.join(".")}: ${err.message}`,
-      );
-      return CreateUserResponse.validationFailure(errors);
-    }
-
-    const message =
-      error instanceof Error ? error.message : "Unknown error occurred";
-    return CreateUserResponse.failure("Houve um erro ao criar o usuário", [message]);
+    const message = error instanceof Error ? error.message : "Unknown error occurred";
+    const errors = error instanceof Error ? [error] : [new Error(message)];
+    return CreateUserResponse.failure("Houve um erro ao criar o usuário", errors);
   }
 }

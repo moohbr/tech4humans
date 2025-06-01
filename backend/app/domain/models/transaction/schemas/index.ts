@@ -9,9 +9,10 @@ export class TransactionSchemas {
     .positive("Transaction ID must be positive");
 
   public static readonly amountSchema = z
+    .coerce
     .number()
-    .refine((val) => Number.isFinite(val), {
-      message: "Amount must be a finite number",
+    .refine((val) => val > 0, {
+      message: "Amount must be greater than 0",
     });
 
   public static readonly descriptionSchema = z
@@ -40,5 +41,6 @@ export class TransactionSchemas {
     destinationAccountId: this.accountIdSchema,
     sourceAccountId: this.accountIdSchema,
     type: this.transactionTypeSchema,
+    transactionDate: this.transactionDateSchema,
   });
 }

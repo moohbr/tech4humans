@@ -7,6 +7,7 @@ import { UserRepositoryInterface } from "@models/user/repository/interfaces";
 import { AccountEntity } from "@models/account/entity";
 import { AppDataSource } from "@infrastructure/datasources/databases/typeorm";
 import { UserNotFoundError } from "@errors/user/user-not-found-error";
+import { logger } from "@infrastructure/logger";
 
 export class AddAccountToUserUseCase
   implements AddAccountToUserUseCaseInterface
@@ -21,11 +22,28 @@ export class AddAccountToUserUseCase
   ): Promise<AddAccountToUserResponse> {
     try {
       const userId = request.getUserIdVO();
-      
+      logger.info("Starting account creation process", {
+        userId: userId.getValue(),
+        accountName: request.getName().getValue(),
+        accountType: request.getAccountTypeVO().getValue(),
+        bankName: request.getBankNameVO().getValue()
+      });
+
+      logger.debug("Verifying user existence");
       const user = await this.userRepository.findById(userId);
       if (!user) {
-        throw new UserNotFoundError(userId.getValue().toString());
+        const error = new UserNotFoundError(userId.getValue().toString());
+        logger.error("User not found during account creation", {
+          userId: userId.getValue(),
+          error: error.message
+        });
+        throw error;
       }
+
+      logger.debug("Creating account entity", {
+        accountType: request.getAccountTypeVO().getValue(),
+        initialBalance: request.getInitialBalanceVO().getValue()
+      });
   
       const account = AccountEntity.create(
         request.getName().getValue(),
@@ -35,26 +53,37 @@ export class AddAccountToUserUseCase
         request.getBankNameVO().getValue(),
       );
   
+      logger.info("Starting database transaction for account creation");
       const savedAccount = await AppDataSource.transaction(async (manager) => {
-        return await this.accountRepository.create(account, manager);
+        logger.debug("Persisting account to database");
+        const createdAccount = await this.accountRepository.create(account, manager);
+        logger.info("Account created successfully", {
+          accountId: createdAccount.getId().getValue(),
+          userId: userId.getValue(),
+          accountType: createdAccount.getType().getValue()
+        });
+        return createdAccount;
       });
   
       return AddAccountToUserResponse.success(savedAccount);
     } catch (error) {
+      if (error instanceof UserNotFoundError) {
+        throw error;
+      }
+
+      logger.error("Unexpected error during account creation", {
+        error: error instanceof Error ? error.message : "Unknown error",
+        stack: error instanceof Error ? error.stack : undefined,
+        userId: request.getUserIdVO().getValue()
+      });
+
       return this.handleError(error);
     }
   }
 
   private handleError(error: unknown): AddAccountToUserResponse {
-    if (error instanceof ZodError) {
-      const errors = error.errors.map(
-        (err) => `${err.path.join(".")}: ${err.message}`,
-      );
-      return AddAccountToUserResponse.validationFailure(errors);
-    }
-
-    const message =
-      error instanceof Error ? error.message : "Unknown error occurred";
-    return AddAccountToUserResponse.failure(message, []);
+    const message = error instanceof Error ? error.message : "Unknown error occurred";
+    const errors = error instanceof Error ? [error] : [new Error(message)];
+    return AddAccountToUserResponse.failure("Houve um erro ao adicionar a conta", errors);
   }
 }

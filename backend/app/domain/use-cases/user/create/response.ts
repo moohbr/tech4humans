@@ -3,7 +3,7 @@ import { UserNotFoundError } from "@domain/errors/user/user-not-found-error";
 import { UserEntity } from "@models/user/entity";
 
 export class CreateUserResponse extends EntityResponse<UserEntity> {
-  private constructor(user: UserEntity | null, success: boolean, message: string, errors: string[]) {
+  private constructor(user: UserEntity | null, success: boolean, message: string, errors: Error[]) {
     super(user, success, message, errors, UserNotFoundError);
   }
 
@@ -11,11 +11,11 @@ export class CreateUserResponse extends EntityResponse<UserEntity> {
     return new CreateUserResponse(user, true, "User created successfully", []);
   }
 
-  public static failure(message: string, errors: string[] = []): CreateUserResponse {
+  public static failure(message: string, errors: Error[] = []): CreateUserResponse {
     return new CreateUserResponse(null, false, message, errors);
   }
 
-  public static validationFailure(errors: string[]): CreateUserResponse {
+  public static validationFailure(errors: Error[]): CreateUserResponse {
     return new CreateUserResponse(null, false, "Validation failed", errors);
   }
 

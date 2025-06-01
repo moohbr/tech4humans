@@ -2,6 +2,7 @@ import { UpdateAccountOfUserUseCaseInterface } from "@useCases/account/update-of
 import { UpdateAccountOfUserRequest } from "@useCases/account/update-of-a-user/request";
 import { BaseController } from "../../../base/controller";
 import { Request, Response } from "express";
+import { logger } from "@infrastructure/logger";
 
 export class UpdateAccountOfUserController extends BaseController {
   constructor(private readonly useCase: UpdateAccountOfUserUseCaseInterface) {
@@ -24,8 +25,12 @@ export class UpdateAccountOfUserController extends BaseController {
         return;
       }
 
-      const statusCode = this.getErrorStatusCode("UpdateAccount", !!response.getValidationErrors());
-      this.sendErrorResponse(res, response.getError() || "Failed to update account", response.getValidationErrors(), statusCode);
+      if (response.hasErrors()) {
+        for (const error of response.getErrors()) {
+          logger.error("Error", { error: error.message });
+        }
+        throw response.getErrors()[0];
+      }
     } catch (error) {
       this.handleControllerError(error, res, "UpdateAccountOfUserController");
     }

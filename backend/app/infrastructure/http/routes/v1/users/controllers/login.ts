@@ -2,6 +2,7 @@ import { LoginUseCaseInterface } from "@useCases/user/login/interfaces";
 import { LoginRequest } from "@useCases/user/login/request";
 import { Request, Response } from "express";
 import { BaseController } from "@infrastructure/http/routes/base/controller";
+import { logger } from "@infrastructure/logger";
 
 export class LoginController extends BaseController {
   constructor(private readonly loginUseCase: LoginUseCaseInterface) {
@@ -19,16 +20,12 @@ export class LoginController extends BaseController {
         return;
       }
 
-      const statusCode = this.getErrorStatusCode(
-        response.getMessage(),
-        response.hasErrors(),
-      );
-      this.sendErrorResponse(
-        res,
-        response.getMessage(),
-        response.getErrors(),
-        statusCode,
-      );
+      if (response.hasErrors()) {
+        for (const error of response.getErrors()) {
+          logger.error("Error" , { error: error.message });
+        }
+        throw response.getErrors()[0];
+      }
     } catch (error) {
       this.handleControllerError(error, res, "LoginController");
     }

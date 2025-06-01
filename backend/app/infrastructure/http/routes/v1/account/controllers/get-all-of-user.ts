@@ -2,6 +2,7 @@ import { GetAllAccountsOfUserUseCaseInterface } from "@useCases/account/get-all-
 import { GetAllAccountsOfUserRequest } from "@useCases/account/get-all-of-user/request";
 import { BaseController } from "../../../base/controller";
 import { Request, Response } from "express";
+import { logger } from "@infrastructure/logger";
 
 export class GetAllAccountsOfUserController extends BaseController {
   constructor(private readonly useCase: GetAllAccountsOfUserUseCaseInterface) {
@@ -24,8 +25,12 @@ export class GetAllAccountsOfUserController extends BaseController {
         return;
       }
 
-      const statusCode = this.getErrorStatusCode("GetAllAccountsOfUser", !!response.getValidationErrors());
-      this.sendErrorResponse(res, response.getError() || "Failed to retrieve accounts", response.getValidationErrors(), statusCode);
+      if (response.hasErrors()) {
+        for (const error of response.getErrors()) {
+          logger.error("Error", { error: error.message });
+        }
+        throw response.getErrors()[0];
+      }
     } catch (error) {
       this.handleControllerError(error, res, "GetAllAccountsOfUserController");
     }

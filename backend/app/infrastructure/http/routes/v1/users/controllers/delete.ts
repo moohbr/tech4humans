@@ -2,6 +2,7 @@ import { DeleteUserUseCaseInterface } from "@useCases/user/delete/interfaces";
 import { DeleteUserRequest } from "@useCases/user/delete/request";
 import { Request, Response } from "express";
 import { BaseController } from "@infrastructure/http/routes/base/controller";
+import { logger } from "@infrastructure/logger";
 
 export class DeleteUserController extends BaseController {
   constructor(private readonly deleteUserUseCase: DeleteUserUseCaseInterface) {
@@ -21,16 +22,12 @@ export class DeleteUserController extends BaseController {
         return;
       }
 
-      const statusCode = this.getErrorStatusCode(
-        response.getMessage(),
-        response.hasErrors(),
-      );
-      this.sendErrorResponse(
-        res,
-        response.getMessage(),
-        response.getErrors(),
-        statusCode,
-      );
+      if (response.hasErrors()) {
+        for (const error of response.getErrors()) {
+          logger.error("Error", { error: error.message });
+        }
+        throw response.getErrors()[0];
+      }
     } catch (error) {
       this.handleControllerError(error, res, "DeleteUserController");
     }

@@ -2,6 +2,7 @@ import { DeleteAccountOfUserUseCaseInterface } from "@useCases/account/delete-of
 import { DeleteAccountOfUserRequest } from "@useCases/account/delete-of-a-user/request";
 import { BaseController } from "../../../base/controller";
 import { Request, Response } from "express";
+import { logger } from "@infrastructure/logger";
 
 export class DeleteAccountOfUserController extends BaseController {
   constructor(private readonly useCase: DeleteAccountOfUserUseCaseInterface) {
@@ -22,8 +23,12 @@ export class DeleteAccountOfUserController extends BaseController {
         return;
       }
 
-      const statusCode = this.getErrorStatusCode("DeleteAccount", !!response.getValidationErrors());
-      this.sendErrorResponse(res, response.getError() || "Failed to delete account", response.getValidationErrors(), statusCode);
+      if (response.hasErrors()) {
+        for (const error of response.getErrors()) {
+          logger.error("Error", { error: error.message });
+        }
+        throw response.getErrors()[0];
+      }
     } catch (error) {
       this.handleControllerError(error, res, "DeleteAccountOfUserController");
     }

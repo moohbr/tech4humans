@@ -2,7 +2,6 @@ import { AccountId } from "@models/account/value-objects/id";
 import { AccountTypeVO } from "@models/account/value-objects/type";
 import { UpdateAccountOfUserSchemas } from "@useCases/account/update-of-a-user/schemas";
 import { AccountName } from "@models/account/value-objects/name";
-import { AccountBalance } from "@models/account/value-objects/balance";
 import { BankName } from "@models/bank/value-objects/name";
 
 export class UpdateAccountOfUserRequest {

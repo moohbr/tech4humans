@@ -20,7 +20,6 @@ export class AddTransactionToUserController extends BaseController {
         },
         body: req.body,
       });
-      logger.info("Request", { request });
 
       const response = await this.addTransactionToUserUseCase.execute(request);
 
@@ -35,16 +34,12 @@ export class AddTransactionToUserController extends BaseController {
         return;
       }
 
-      const statusCode = this.getErrorStatusCode(
-        response.getMessage(),
-        response.hasErrors(),
-      );
-      this.sendErrorResponse(
-        res,
-        response.getMessage(),
-        response.getErrors(),
-        statusCode,
-      );
+      if (response.hasErrors()) {
+        for (const error of response.getErrors()) {
+          logger.error("Error", { error: error.message });
+        }
+        throw response.getErrors()[0];
+      }
     } catch (error) {
       this.handleControllerError(error, res, "AddTransactionToUserController");
     }
