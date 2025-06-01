@@ -1,0 +1,10 @@
+import { handleResponse } from "../base";
+
+const API_BASE_URL = import.meta.env.BASE_URL;
+
+export const deleteAccount = async (accountId: number): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/accounts/${accountId}`, {
+      method: 'DELETE',
+    });
+    await handleResponse(response);
+  }
