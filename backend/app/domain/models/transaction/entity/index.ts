@@ -1,4 +1,3 @@
-
 import { z } from "zod";
 import { TransactionSchemas } from "@models/transaction/schemas";
 import { TransactionId } from "@models/transaction/value-objects/id";
@@ -15,6 +14,7 @@ export class TransactionEntity {
     private readonly description: TransactionDescription,
     private readonly destinationAccountId: AccountId,
     private readonly sourceAccountId: AccountId,
+    private readonly transactionDate: Date,
     private readonly type: TransactionTypeVo,
 ) {}
 
@@ -26,6 +26,7 @@ export class TransactionEntity {
       TransactionDescription.create(validatedData.description),
       AccountId.create(validatedData.destinationAccountId),
       AccountId.create(validatedData.sourceAccountId),
+      new Date(),
       TransactionTypeVo.create(validatedData.type),
     );
   }
@@ -38,6 +39,7 @@ export class TransactionEntity {
       TransactionDescription.create(validatedData.description),
       AccountId.create(validatedData.destinationAccountId),
       AccountId.create(validatedData.sourceAccountId),
+      validatedData.transactionDate,
       TransactionTypeVo.create(validatedData.type),
     );
   }
@@ -75,6 +77,7 @@ export class TransactionEntity {
       destinationAccountId: this.destinationAccountId.getValue(),
       sourceAccountId: this.sourceAccountId.getValue(),
       type: this.type.getValue(),
+      transactionDate: this.transactionDate,
     };
   }
 
@@ -85,7 +88,8 @@ export class TransactionEntity {
       description: this.description.getValue(),
       destinationAccountId: this.destinationAccountId.getValue(),
       sourceAccountId: this.sourceAccountId.getValue(),
-      type: this.type.getValue()
+      type: this.type.getValue(),
+      transactionDate: this.transactionDate,
     };
   }
 
@@ -96,6 +100,7 @@ export class TransactionEntity {
       TransactionDescription.create(params.description),
       AccountId.create(params.destinationAccountId),
       AccountId.create(params.sourceAccountId),
+      params.transactionDate,
       TransactionTypeVo.create(params.type),
     );
   }

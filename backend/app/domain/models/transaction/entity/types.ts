@@ -7,5 +7,6 @@ export type TransactionRawEntity = {
     destinationAccountId: number;
     sourceAccountId: number;
     type: TransactionType;
+    transactionDate: Date;
 }
    
