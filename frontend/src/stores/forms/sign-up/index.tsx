@@ -17,7 +17,7 @@ export const useSignUpFormStore = create<SignUpFormStore>()(
           name: "",
           type: AccountType.POUPANCA,
           balance: 0,
-          bank: { name: "" },
+          bankName: "",
         },
       },
       updateData: (values) =>
@@ -37,7 +37,7 @@ export const useSignUpFormStore = create<SignUpFormStore>()(
           name: "",
           type: AccountType.POUPANCA,
           balance: 0,
-          bank: { name: "" },
+          bankName: "",
         },
       } }),
     }),
