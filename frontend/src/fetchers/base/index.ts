@@ -5,11 +5,19 @@ export async function handleResponse<T>(response: Response): Promise<ApiResponse
         throw new ApiError(data.message, response.status, data.errors);
     }
 
+    if (!data) {
+        throw new ApiError('Erro ao processar a resposta', response.status, []);
+    }
+
+    if (response.status === 401) {
+        throw new ApiError('Credenciais inválidas', response.status, []);
+    }
+
     return data;
 }
 
 
-class ApiError extends Error {
+export class ApiError extends Error {
     constructor(
         message: string,
         public status: number,

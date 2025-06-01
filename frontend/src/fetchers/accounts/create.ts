@@ -1,8 +1,9 @@
+import { AccountType } from "@/types/account/enum";
 import { handleResponse } from "../base";
-import { Account, AccountType } from "@/types/account";
+import { Account } from "@/types/account/types";
 
 
-const API_BASE_URL = import.meta.env.BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const createAccount = async (
     userId: number, data: {

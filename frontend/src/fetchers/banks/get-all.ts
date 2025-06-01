@@ -1,10 +1,9 @@
 import { Bank } from "@/types/bank/types";
 import { handleResponse } from "../base";
 
-const API_BASE_URL = import.meta.env.BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export const getAllBanks = async (): Promise<Bank[]> => {
+export const getAllBanks = async () => {
     const response = await fetch(`${API_BASE_URL}/banks`);
-    const result = await handleResponse<Bank[]>(response);
-    return result.data!;
+    return await handleResponse<Bank[]>(response);
 }

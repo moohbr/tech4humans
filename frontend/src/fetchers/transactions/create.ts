@@ -2,7 +2,7 @@ import { Transaction } from "@/types/transaction/types";
 import { handleResponse } from "../base";
 import { TransactionType } from "@/types/transaction/enum";
 
-const API_BASE_URL = import.meta.env.BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const createTransaction = async (
     sourceAccountId: number,
