@@ -1,3 +1,3 @@
-import { LoginCredentials } from "@/types/auth/types";
+import { User } from "@/types/user/types";
 
-export type LoginCredentials = Pick<LoginCredentials, "email" | "password">;
+export type LoginCredentials = Pick<User, "email" | "password">;

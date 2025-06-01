@@ -9,7 +9,7 @@ export function useLogin() {
   return useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
       const response = await login(credentials);
-      setAuth(response.token);
+      setAuth(response.data?.token ?? "");
       return response;
     },
   });
