@@ -2,6 +2,8 @@ DATASOURCE=./app/infrastructure/datasources/databases/typeorm/index.ts
 DATASOURCE_BUILD=./build/infrastructure/datasources/databases/typeorm/index.js
 MIGRATIONS=./migrations
 
+.PHONY: create generate run revert
+
 create:
 	@echo "📦 Creating migration: $(MIG)"
 	@test -n "$(MIG)" || (echo "❌ Use: make create MIG=NameOfMigration" && exit 1)
