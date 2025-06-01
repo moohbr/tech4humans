@@ -1,13 +1,6 @@
-import { User } from "@/types/user/types";
-import { LayoutGrid } from "lucide-react";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type PropsWithChildren,
-} from "react";
-import { jwtDecode } from "jwt-decode";
+import { createContext, useContext, useEffect, useState } from 'react';
+import { User } from '@/types/user/types';
+import { jwtDecode } from 'jwt-decode';
 
 interface AuthContextType {
   user: User | null;
@@ -16,17 +9,15 @@ interface AuthContextType {
   logout: () => void;
 }
 
-export const AuthContext = createContext<AuthContextType>({
-  user: null,
-  token: null,
-  login: () => undefined,
-  logout: () => undefined,
-});
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-function AuthProvider({ children }: PropsWithChildren) {
+interface AuthProviderProps {
+  children: React.ReactNode;
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const storedToken = localStorage.getItem('auth_token');
@@ -40,7 +31,6 @@ function AuthProvider({ children }: PropsWithChildren) {
         localStorage.removeItem('auth_token');
       }
     }
-    setIsLoading(false);
   }, []);
 
   const login = (newToken: string) => {
@@ -61,16 +51,6 @@ function AuthProvider({ children }: PropsWithChildren) {
     localStorage.removeItem('auth_token');
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex w-full items-center justify-center h-screen flex-col md:flex-row bg-zinc-50 dark:bg-zinc-950">
-        <div className="p-1.5 bg-linear-to-br from-indigo-500 to-purple-500 rounded-lg shadow-xs animate-spin">
-          <LayoutGrid className="w-5 h-5 text-white" />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <AuthContext.Provider value={{ user, token, login, logout }}>
       {children}
@@ -80,10 +60,8 @@ function AuthProvider({ children }: PropsWithChildren) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}
-
-export default AuthProvider;
+} 
