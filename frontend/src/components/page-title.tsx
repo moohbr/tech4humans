@@ -8,7 +8,7 @@ interface PageTitleProps {
 
 export default function PageTitle({
   title,
-  suffix = "Kaneo",
+  suffix = "Tech4Humans",
   hideAppName = false,
 }: PageTitleProps) {
   useEffect(() => {
