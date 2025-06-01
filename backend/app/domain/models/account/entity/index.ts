@@ -17,7 +17,7 @@ export class AccountEntity {
     private readonly createdAt: Date,
     private readonly userId: UserId,
     private readonly bankName: BankName,
-  ) {}
+  ) { }
 
   public static create(
     name: string,
@@ -54,7 +54,7 @@ export class AccountEntity {
     balance: number,
     createdAt: Date,
     userId: number,
-      bankName: string,
+    bankName: string,
   ): AccountEntity {
     const validated = AccountSchemas.accountEntitySchema.parse({
       id,
@@ -75,7 +75,7 @@ export class AccountEntity {
     );
   }
 
-  public toPersistence(): AccountRawEntity  {
+  public toPersistence(): AccountRawEntity {
     return {
       id: this.id.isNew() ? null : this.id.getValue(),
       name: this.name.getValue(),
@@ -127,4 +127,11 @@ export class AccountEntity {
     return this.createdAt;
   }
 
+  public getId(): AccountId {
+    return this.id;
+  }
+
+  public getBankName(): BankName {
+    return this.bankName;
+  }
 }
