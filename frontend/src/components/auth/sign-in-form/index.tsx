@@ -15,24 +15,16 @@ import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { type ZodType, z } from "zod";
 import { useAuth } from "@/contexts/auth";
+import { SignInFormValues } from "./types";
+import { signInSchema } from "./schema";
 
-export type SignInFormValues = {
-  email: string;
-  password: string;
-};
-
-const signInSchema: ZodType<SignInFormValues> = z.object({
-  email: z.string().email({ message: "Email inválido" }),
-  password: z.string().min(6, { message: "Senha deve ter no mínimo 6 caracteres" }),
-});
 
 export function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
-  
+
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
@@ -49,16 +41,19 @@ export function SignInForm() {
         email: data.email,
         password: data.password,
       });
-      
-      login(response.token);
+
+      login(response.data.token);
       toast.success("Login realizado com sucesso!");
 
-      // Navigate to dashboard after a short delay to allow the toast to be seen
       setTimeout(() => {
         navigate({ to: "/users/dashboard" });
       }, 500);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Erro ao fazer login");
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Erro ao fazer login");
+      }
     }
   };
 
