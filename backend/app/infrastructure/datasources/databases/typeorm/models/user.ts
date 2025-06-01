@@ -26,4 +26,7 @@ export class User {
 
   @CreateDateColumn()
   createdAt!: Date;
+
+  @Column({ type: "boolean", default: false })
+  deleted!: boolean;
 }

@@ -6,7 +6,6 @@ import { UserId } from "@models/user/value-objects/id";
 import { Account } from "@infrastructure/datasources/databases/typeorm/models/account";
 import { AppDataSource } from "@infrastructure/datasources/databases/typeorm";
 import { AccountNotFoundError } from "@errors/account/account-not-found-error";
-import { logger } from "@infrastructure/logger";
 
 export class TypeOrmAccountRepository implements AccountRepositoryInterface {
   constructor(
@@ -18,7 +17,6 @@ export class TypeOrmAccountRepository implements AccountRepositoryInterface {
   }
   
   public async create(accountEntity: AccountEntity): Promise<AccountEntity> {
-    logger.info("Creating account", { accountEntity });
     const data = accountEntity.toPersistence();
     const account = this.repository.create({
       name: data.name,
@@ -27,10 +25,10 @@ export class TypeOrmAccountRepository implements AccountRepositoryInterface {
       createdAt: data.createdAt,
       user: { id: data.userId },
       bank: { name: data.bankName },
+      deleted: false,
     });
 
     const saved = await this.repository.save(account);
-    logger.info("Account saved", { saved });
     return AccountEntity.reconstruct(
       saved.id,
       saved.name,
@@ -44,7 +42,7 @@ export class TypeOrmAccountRepository implements AccountRepositoryInterface {
 
   public async findById(id: AccountId): Promise<AccountEntity | null> {
     const account = await this.repository.findOne({
-      where: { id: id.getValue() },
+      where: { id: id.getValue(), deleted: false, user: { deleted: false } },
       relations: ["user", "bank"],
     });
 
@@ -63,7 +61,7 @@ export class TypeOrmAccountRepository implements AccountRepositoryInterface {
 
   public async findByUserId(userId: UserId): Promise<AccountEntity[]> {
     const accounts = await this.repository.find({
-      where: { user: { id: userId.getValue() } },
+      where: { user: { id: userId.getValue(), deleted: false }, deleted: false },
       relations: ["user", "bank"],
     });
 
@@ -85,7 +83,7 @@ export class TypeOrmAccountRepository implements AccountRepositoryInterface {
     accountEntity: AccountEntity,
   ): Promise<AccountEntity> {
     const accountInDb = await this.repository.findOne({
-      where: { id: id.getValue() },
+      where: { id: id.getValue(), deleted: false, user: { deleted: false } },
       relations: ["user", "bank"],
     });
 
@@ -115,6 +113,12 @@ export class TypeOrmAccountRepository implements AccountRepositoryInterface {
   }
 
   public async delete(id: AccountId): Promise<void> {
-    await this.repository.delete(id.getValue());
+    const account = await this.repository.findOne({
+      where: { id: id.getValue(), deleted: false, user: { deleted: false } },
+    });
+
+    if (!account) throw new AccountNotFoundError(id.getValue().toString());
+
+    await this.repository.update(id.getValue(), { deleted: true });
   }
 }

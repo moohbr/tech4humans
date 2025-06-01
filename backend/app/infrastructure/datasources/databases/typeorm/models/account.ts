@@ -36,4 +36,7 @@ export class Account {
 
   @CreateDateColumn()
   createdAt!: Date;
+
+  @Column({ type: "boolean", default: false })
+  deleted!: boolean;
 }

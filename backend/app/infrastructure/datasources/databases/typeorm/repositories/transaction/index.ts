@@ -1,6 +1,6 @@
 import { Between, Repository } from "typeorm";
 import { TransactionEntity } from "@models/transaction/entity";
-import { TransactionRepositoryInterface } from "@models/transaction/repository/interfaces";
+import { QueryTransactionParams, TransactionRepositoryInterface } from "@models/transaction/repository/interfaces";
 import { AppDataSource } from "@infrastructure/datasources/databases/typeorm";
 import { Transaction } from "@infrastructure/datasources/databases/typeorm/models/transactions";
 import { TransactionId } from "@models/transaction/value-objects/id";
@@ -25,14 +25,18 @@ export class TypeOrmTransactionRepository implements TransactionRepositoryInterf
         destinationAccountId: transaction.destinationAccount.id,
         sourceAccountId: transaction.sourceAccount.id,
         type: transaction.type,
+        transactionDate: transaction.transactionDate,
     }));
   }
   
-  public async findByUserId(userId: UserId): Promise<TransactionEntity[]> {
+  public async findByUserId(userId: UserId, params: QueryTransactionParams): Promise<TransactionEntity[]> {
     const transactions = await this.repository.find({
         where: { sourceAccount: { user: {id: userId.getValue() } } },
         relations: ['sourceAccount', 'destinationAccount'],
-    });
+        skip: params.page.getValue() ? (params.page.getValue() - 1) * params.limit.getValue() : 0,
+        take: params.limit.getValue(),
+        order: { transactionDate: params.orderBy.getValue() },
+    }); 
 
     return transactions.map(transaction => TransactionEntity.reconstruct({
         id: transaction.id,
@@ -41,6 +45,7 @@ export class TypeOrmTransactionRepository implements TransactionRepositoryInterf
         destinationAccountId: transaction.destinationAccount.id,
         sourceAccountId: transaction.sourceAccount.id,
         type: transaction.type,
+        transactionDate: transaction.transactionDate,
     }));
   }
 
@@ -64,6 +69,7 @@ export class TypeOrmTransactionRepository implements TransactionRepositoryInterf
         destinationAccountId: savedTransaction.destinationAccount.id,
         sourceAccountId: savedTransaction.sourceAccount.id,
         type: savedTransaction.type,
+        transactionDate: savedTransaction.transactionDate,
     });
   }
 
@@ -84,6 +90,7 @@ export class TypeOrmTransactionRepository implements TransactionRepositoryInterf
         destinationAccountId: transaction.destinationAccount.id,
         sourceAccountId: transaction.sourceAccount.id,
         type: transaction.type,
+        transactionDate: transaction.transactionDate,
     });
   }
 
@@ -105,6 +112,7 @@ export class TypeOrmTransactionRepository implements TransactionRepositoryInterf
         destinationAccountId: transaction.destinationAccount.id,
         sourceAccountId: transaction.sourceAccount.id,
         type: transaction.type,
+        transactionDate: transaction.transactionDate,
       })
     );
   }
@@ -126,6 +134,7 @@ export class TypeOrmTransactionRepository implements TransactionRepositoryInterf
         destinationAccountId: transaction.destinationAccount.id,
         sourceAccountId: transaction.sourceAccount.id,
         type: transaction.type,
+        transactionDate: transaction.transactionDate,
       })
     );
   }
@@ -158,6 +167,7 @@ export class TypeOrmTransactionRepository implements TransactionRepositoryInterf
       destinationAccountId: savedTransaction.destinationAccount.id,
       sourceAccountId: savedTransaction.sourceAccount.id,
       type: savedTransaction.type,
+      transactionDate: savedTransaction.transactionDate,
     });
   }
 
