@@ -5,7 +5,6 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  // FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,56 +12,57 @@ import { Eye, EyeOff } from "lucide-react";
 import {
   useState,
   useCallback,
-  // useEffect
 } from "react";
 import { useForm } from "react-hook-form";
 import { signUpSchema } from "./schemas";
 import { SignUpFormProps, SignUpFormValues } from "./types";
 import { toast } from "sonner";
-
+import { useSignUpFormStore } from "@/stores/forms/sign-up";
 
 export function SignUpForm({ onSubmit, isLoading = false }: SignUpFormProps) {
+  const { data, updateData } = useSignUpFormStore();
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema.pick({ user: true })),
     defaultValues: {
       user: {
-        name: "",
-        email: "",
-        password: "",
-      }
+        name: data.user?.name || "",
+        email: data.user?.email || "",
+        password: data.user?.password || "",
+      },
     },
     mode: 'onChange',
   });
-
-  // useEffect(() => {
-  //   console.log('=== FORM DEBUG ===');
-  //   console.log('Form values:', form.getValues());
-  //   console.log('Form errors:', form.formState.errors);
-  //   console.log('Form isValid:', form.formState.isValid);
-  //   console.log('Form isDirty:', form.formState.isDirty);
-  //   console.log('Form dirtyFields:', form.formState.dirtyFields);
-  //   console.log('Form touchedFields:', form.formState.touchedFields);
-  //   console.log('==================');
-  // }, [form.formState.isValid, form.formState.errors, form.formState.isDirty]);
 
   const togglePasswordVisibility = useCallback(() => {
     setShowPassword(prev => !prev);
   }, []);
 
-  const handleSubmit = useCallback((data: SignUpFormValues) => {
-    console.log('Form submitted with data:', data);
+  const handleSubmit = useCallback((formData: SignUpFormValues) => {
+    console.log('formData', formData);
+    console.log('form.formState.isValid', form.formState.isValid);
+    console.log('form.formState.errors', form.formState.errors);
+    
+    if (!form.formState.isValid) return;
 
-    const result = signUpSchema.pick({ user: true }).safeParse(data);
+    const result = signUpSchema.pick({ user: true }).safeParse(formData);
     if (!result.success) {
-      console.log('Manual validation failed:', result.error.errors);
-      toast.error('Erro ao validar os dados');
+      console.log('result.error', result.error);
+
+      toast.error('Erro ao validar os dados', {
+        description: result.error.errors.map(error => error.message).join(', '),
+      });
       return;
     }
 
-    onSubmit(data);
-  }, [onSubmit]);
+    updateData({
+      user: formData.user,
+      account: data.account,
+    });
+
+    onSubmit?.(formData);
+  }, [data, updateData, form.formState.isValid, onSubmit]);
 
   return (
     <div className="space-y-6">
@@ -81,7 +81,6 @@ export function SignUpForm({ onSubmit, isLoading = false }: SignUpFormProps) {
             <FormField
               control={form.control}
               name="user.name"
-              // render={({ field, fieldState }) => (
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-sm font-medium text-zinc-300 mb-1.5 block">
@@ -95,14 +94,6 @@ export function SignUpForm({ onSubmit, isLoading = false }: SignUpFormProps) {
                       {...field}
                     />
                   </FormControl>
-                  {/* {fieldState.error && (
-                    <FormMessage className="text-red-400 text-xs">
-                      {fieldState.error.message}
-                    </FormMessage>
-                  )} */}
-                  {/* <div className="text-xs text-yellow-400 mt-1">
-                    Debug: value="{field.value}", error={fieldState.error?.message || 'none'}
-                  </div> */}
                 </FormItem>
               )}
             />
@@ -110,7 +101,6 @@ export function SignUpForm({ onSubmit, isLoading = false }: SignUpFormProps) {
             <FormField
               control={form.control}
               name="user.email"
-              // render={({ field, fieldState }) => (
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-sm font-medium text-zinc-300 mb-1.5 block">
@@ -125,14 +115,6 @@ export function SignUpForm({ onSubmit, isLoading = false }: SignUpFormProps) {
                       {...field}
                     />
                   </FormControl>
-                  {/* {fieldState.error && (
-                    <FormMessage className="text-red-400 text-xs">
-                      {fieldState.error.message}
-                    </FormMessage>
-                  )} */}
-                  {/* <div className="text-xs text-yellow-400 mt-1">
-                    Debug: value="{field.value}", error={fieldState.error?.message || 'none'}
-                  </div> */}
                 </FormItem>
               )}
             />
@@ -140,7 +122,6 @@ export function SignUpForm({ onSubmit, isLoading = false }: SignUpFormProps) {
             <FormField
               control={form.control}
               name="user.password"
-              // render={({ field, fieldState }) => (
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-sm font-medium text-zinc-300 mb-1.5 block">
@@ -167,22 +148,10 @@ export function SignUpForm({ onSubmit, isLoading = false }: SignUpFormProps) {
                       </button>
                     </div>
                   </FormControl>
-                  {/* {fieldState.error && (
-                    <FormMessage className="text-red-400 text-xs">
-                      {fieldState.error.message}
-                    </FormMessage>
-                  )} */}
-                  {/* <div className="text-xs text-yellow-400 mt-1">
-                    Debug: value="{field.value}", error={fieldState.error?.message || 'none'}
-                  </div> */}
                 </FormItem>
               )}
             />
           </div>
-          {/* 
-          <div className="text-xs text-blue-400 mb-2">
-            Button Debug: isValid={form.formState.isValid.toString()}, isLoading={isLoading.toString()}
-          </div> */}
 
           <Button
             type="submit"
@@ -199,21 +168,11 @@ export function SignUpForm({ onSubmit, isLoading = false }: SignUpFormProps) {
             )}
           </Button>
 
-          {/* <Button
-            type="button"
-            onClick={() => {
-              const values = form.getValues();
-              console.log('Manual test - current values:', values);
-              const result = signUpSchema.safeParse(values);
-              console.log('Manual test - validation result:', result);
-              if (result.success) {
-                handleSubmit(values);
-              }
-            }}
-            className="w-full bg-green-600 text-white hover:bg-green-500 mt-2"
-          >
-            Test Submit (Ignore Validation)
-          </Button> */}
+          {!form.formState.isValid && (
+            <div className="text-xs text-red-400 mt-2 text-center">
+              Por favor, preencha todos os campos obrigatórios
+            </div>
+          )}
         </form>
       </Form>
     </div>

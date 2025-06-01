@@ -13,26 +13,29 @@ import { AccountType } from "@/types/account/enum";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useCallback, useMemo } from "react";
-import { accountInfoFormSchema, accountInfoTransformedSchema } from "./schema";
+import { accountInfoFormSchema } from "./schema";
 import { AccountInfoFormProps, AccountInfoFormValues } from "./types";
 import { ACCOUNT_TYPE_LABELS } from "@/constants/account-type-labels";
+import { useSignUpFormStore } from "@/stores/forms/sign-up";
+import { toast } from "sonner";
+import { signUpSchema } from "../sign-up-form/schemas";
 
 export function AccountInfoForm({ 
-  account, 
-  onSubmit, 
+  onSubmit,
   isReadOnly = false, 
   nextButtonText = "Próxima etapa",
   isLoading = false 
 }: AccountInfoFormProps) {
-  
+  const { data, updateData } = useSignUpFormStore();
+
   const form = useForm<AccountInfoFormValues>({
     resolver: zodResolver(accountInfoFormSchema),
     defaultValues: {
-      name: account.name || "",
-      type: account.type || AccountType.POUPANCA,
-      balance: account.balance || 0,
+      name: data.account?.name || "",
+      type: data.account?.type || AccountType.POUPANCA,
+      balance: data.account?.balance || 0,
       bank: {
-        name: account.bank?.name || "",
+        name: data.account?.bank?.name || "",
       },
     },
     mode: 'onChange',
@@ -45,17 +48,31 @@ export function AccountInfoForm({
     })), []
   );
 
-  const handleSubmit = useCallback((data: AccountInfoFormValues) => {
-    if (!onSubmit) return;
+  const handleSubmit = useCallback((formData: AccountInfoFormValues) => {
+    if (!form.formState.isValid) return;
 
-    try {
-      const transformedData = accountInfoTransformedSchema.parse(data);
-      console.log('Account info form submission:', transformedData);
-      onSubmit(transformedData);
-    } catch (error) {
-      console.error('Account info transformation error:', error);
+    const result = signUpSchema.safeParse({
+      account: formData,
+      user: data.user,
+    });
+    if (!result.success) {
+      console.log('result.error', result.error);
+      toast.error('Erro ao validar os dados', {
+        description: result.error.errors.map(error => error.path + ' ' + error.message).join(', '),
+      });
+      return;
     }
-  }, [onSubmit]);
+
+    updateData({
+      user: data.user,
+      account: formData,
+    });
+
+    onSubmit?.({
+      user: data.user,
+      account: formData,
+    });
+  }, [data, updateData, form.formState.isValid, onSubmit]);
 
   const formatCurrency = useCallback((value: string) => {
     const numericValue = value.replace(/[^\d.,]/g, '').replace(',', '.');
@@ -211,7 +228,7 @@ export function AccountInfoForm({
             />
           </div>
 
-          {!isReadOnly && onSubmit && (
+          {!isReadOnly && (
             <Button
               type="submit"
               className="w-full bg-indigo-600 text-white hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400 mt-6 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
