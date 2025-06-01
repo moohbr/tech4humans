@@ -1,5 +1,4 @@
 import { AccountType } from "./enum";
-import { Bank } from "../bank/types";
 
 
 export type Account = {
@@ -9,10 +8,10 @@ export type Account = {
     balance: number;
     createdAt: Date;
     userId: number;
-    bank: Bank;
+    bankName: string;
 }
 
-export type CreateAccountDTO = Pick<Account, "name" | "type" | "balance" | "bank">
+export type CreateAccountDTO = Pick<Account, "name" | "type" | "balance" | "bankName">
 
 
-export type UpdateAccountDTO = Partial<Pick<Account, "name" | "type" | "bank">>
+export type UpdateAccountDTO = Partial<Pick<Account, "name" | "type" | "bankName">>

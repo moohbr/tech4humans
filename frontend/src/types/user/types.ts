@@ -10,7 +10,7 @@ export type User = {
 
 export type CreateUserDTO = {
     user: Pick<User, "name" | "email" | "password">;
-    account: Pick<Account, "name" | "type" | "balance" | "bank">;
+    account: Pick<Account, "name" | "type" | "balance" | "bankName">;
 }
 
 export type CreateUserResponse = User;
