@@ -42,7 +42,7 @@ export function AccountsSection({ accounts, isLoading, bankColors }: AccountsSec
                   <AccountCard
                     key={acc.id}
                     account={acc}
-                    bankColor={bankColors.get(acc.bankName) || 'zinc'}
+                    bankColor={bankColors.get(acc.bankName || acc.bank.name) || 'zinc'}
                     index={index}
                     onEdit={handleEditAccount}
                     onDelete={handleDeleteAccount}

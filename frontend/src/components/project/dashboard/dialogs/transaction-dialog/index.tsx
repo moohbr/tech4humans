@@ -14,15 +14,17 @@ import { DestinationAccountField } from './fields/destination-account'
 import { AmountField } from './fields/amount'
 import { DescriptionField } from './fields/description'
 import { Loader2 } from 'lucide-react'
+import { useAuth } from '@/contexts/auth'
 
 export function TransactionDialog() {
   const { isTransactionDialogOpen, setTransactionDialogOpen } = useDashboardStore()
+  const { user } = useAuth()
   const queryClient = useQueryClient()
   const transactionForm = useForm<CreateTransactionDTO>()
-  const { accounts, isLoading: isLoadingAccounts } = useAccounts({ userId: 1 })
+  const { accounts, isLoading: isLoadingAccounts } = useAccounts({ userId: user?.id ?? 0 })
 
   const accountOptions = accounts?.map((acc) => ({
-    label: `${acc.bankName} - $${acc.balance}`,
+    label: `${acc.bank?.name || acc?.bankName} - $${acc.balance}`,
     value: acc.id.toString(),
   })) || []
 

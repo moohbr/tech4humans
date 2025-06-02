@@ -11,17 +11,18 @@ import { AccountTypeField } from './fields/account-type'
 import { InitialBalanceField } from './fields/initial-balance'
 import { BankNameField } from './fields/bank-name'
 import { AccountNameField } from './fields/account-name'
-
+import { useAuth } from '@/contexts/auth'
 
 export function NewAccountDialog() {
   const { isNewAccountDialogOpen, setNewAccountDialogOpen } = useDashboardStore()
+  const { user } = useAuth()
   const queryClient = useQueryClient()
   const createAccountForm = useForm<CreateAccountDTO>()
 
   const createAccountMutation = useMutation({
-    mutationFn: (data: CreateAccountDTO) => createAccount(1, {
-      ...data,
-      bankName: data.bankName,
+    mutationFn: (data: CreateAccountDTO) => createAccount(user?.id ?? 0, {
+     ...data,
+      bankName: data.bank?.name ? data.bank.name : data.bankName,
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accounts'] })

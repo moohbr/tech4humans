@@ -9,6 +9,15 @@ import {
   AvatarFallback,
 } from "@/components/ui/avatar"
 
+const getInitials = (name: string | undefined | null): string => {
+  if (!name) return 'U'
+  
+  const names = name.trim().split(' ')
+  if (names.length >= 2) {
+    return `${names[0][0]}${names[1][0]}`.toUpperCase()
+  }
+  return names[0][0].toUpperCase()
+}
 
 export function DashboardHeader() {
   const { logout, user } = useAuth()
@@ -24,6 +33,9 @@ export function DashboardHeader() {
     setTheme(theme === 'dark' ? 'light' : 'dark')
   }
 
+  const displayName = user?.name?.trim() || 'Unknown User'
+  const initials = getInitials(user?.name)
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: -20 }}
@@ -35,12 +47,16 @@ export function DashboardHeader() {
           <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
             <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
               <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-500 text-white font-semibold text-sm sm:text-base">
-                {user?.name?.charAt(0).toUpperCase() || 'U'}
+                {initials}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">{user?.name || 'Unknown User'}</div>
-              <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate sm:block hidden">{user?.email || 'unknown@example.com'}</div>
+              <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate" title={displayName}>
+                {displayName}
+              </div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate sm:block hidden" title={user?.email}>
+                {user?.email || 'unknown@example.com'}
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
