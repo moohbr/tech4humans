@@ -20,8 +20,8 @@ export class AuthService implements AuthServiceInterface {
     return bcrypt.compare(raw, hash);
   }
 
-  public generateToken(userId: number): string {
-    return jwt.sign({ userId }, this.jwtSecret, { 
+  public generateToken(user: TokenPayload["user"]): string {
+    return jwt.sign({ user }, this.jwtSecret, { 
       expiresIn: this.jwtExpiresIn,
     });
   }
