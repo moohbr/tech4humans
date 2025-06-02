@@ -9,7 +9,6 @@ export const accountInfoFormSchema = z.object({
   bankName: BankSchemas.nameSchema,
 });
 
-
 export const accountInfoTransformedSchema = accountInfoFormSchema.transform((data) => ({
   ...data,
   balance: Number(data.balance),

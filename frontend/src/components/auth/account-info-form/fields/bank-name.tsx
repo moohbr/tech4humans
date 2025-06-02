@@ -1,10 +1,10 @@
 import { FormControl, FormField, FormLabel, FormItem, FormMessage } from "@/components/ui/form";
+import { Select } from "@/components/ui/select";
 import { useBanks } from "@/hooks/queries/use-banks";
 import { FormFieldProps } from "../types";
 import { useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { BankSchemas } from "@/types/bank/schema";
-import { Select } from "@/components/ui/select";
 
 export function BankNameField({ form, isReadOnly, isLoading }: FormFieldProps) {
     const { banks } = useBanks();
@@ -27,7 +27,7 @@ export function BankNameField({ form, isReadOnly, isLoading }: FormFieldProps) {
                     }
                     return true;
                 },
-            }}  
+            }}
             render={({ field, fieldState }) => (
                 <FormItem>
                     <FormLabel className="text-sm font-medium text-zinc-300 mb-1.5 block">

@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useCallback } from "react";
 import { accountInfoFormSchema } from "./schema";
-import { AccountInfoFormProps, AccountInfoFormValues  } from "./types";
+import { AccountInfoFormProps, AccountInfoFormValues } from "./types";
 import { toast } from "sonner";
 import { signUpSchema } from "../sign-up-form/schemas";
 import { useSignUpFormStore } from "@/stores/forms/sign-up";
@@ -13,7 +13,6 @@ import { AccountNameField } from "./fields/account-name";
 import { AccountTypeField } from "./fields/account-type";
 import { BalanceField } from "./fields/account-balance";
 import { BankNameField } from "./fields/bank-name";
-
 
 export function AccountInfoForm({
   onSubmit,
@@ -27,22 +26,27 @@ export function AccountInfoForm({
   const form = useForm<AccountInfoFormValues>({
     resolver: zodResolver(accountInfoFormSchema),
     defaultValues: {
-      name: data.account?.name || "Nome não informado",
-      type: data.account?.type || AccountType.POUPANCA,
-      balance: data.account?.balance || 0,
-      bankName: data.account?.bankName || "Nome do banco não informado",
+      name: data.account?.name ?? "",
+      type: data.account?.type ?? AccountType.POUPANCA,
+      balance: data.account?.balance ?? 0,
+      bankName: data.account?.bank?.name ?? "",
     },
     mode: 'onChange',
   });
-
 
   const handleSubmit = useCallback((formData: AccountInfoFormValues) => {
     if (!form.formState.isValid) return;
 
     const result = signUpSchema.safeParse({
-      account: formData,
+      account: {
+        ...formData,
+        bank: {
+          name: formData.bankName
+        }
+      },
       user: data.user,
     });
+
     if (!result.success) {
       toast.error('Erro ao validar os dados', {
         description: result.error.errors.map(error => error.path + ' ' + error.message).join(', '),
@@ -52,7 +56,12 @@ export function AccountInfoForm({
 
     updateData({
       user: data.user,
-      account: formData,
+      account: {
+        ...formData,
+        bank: {
+          name: formData.bankName
+        }
+      },
     });
 
     onSubmit?.({

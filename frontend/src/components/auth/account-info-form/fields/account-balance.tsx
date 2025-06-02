@@ -1,4 +1,4 @@
-import { FormField, FormLabel, FormControl, FormItem, FormMessage } from "@/components/ui/form";
+import { FormField, FormLabel, FormControl, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useCallback } from "react";
 import { FormFieldProps } from "../types";
@@ -30,7 +30,7 @@ export function BalanceField({ form, isReadOnly, isLoading }: FormFieldProps) {
           return true;
         },
       }}    
-      render={({ field, fieldState }) => (
+      render={({ field }) => (
         <FormItem>
           <FormLabel className="text-sm font-medium text-zinc-300 mb-1.5 block">
             Saldo Inicial
@@ -54,11 +54,6 @@ export function BalanceField({ form, isReadOnly, isLoading }: FormFieldProps) {
               />
             </div>
           </FormControl>
-          {fieldState.error && (
-            <FormMessage className="text-red-400 text-xs">
-              {fieldState.error.message}
-            </FormMessage>
-          )}
           {!isReadOnly && (
             <p className="text-xs text-zinc-400 mt-1">
               Informe o saldo atual da sua conta
