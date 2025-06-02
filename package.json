@@ -1,0 +1,25 @@
+{
+    "name": "tech4humans",
+    "license": "MIT",
+    "private": true,
+    "packageManager": "yarn@1.22.22",
+    "authors": [
+      {
+        "name": "Matheus Araujo",
+        "email": "matheus.araujo@kukac.com.br",
+        "url": "https://github.com/moohbr"
+      }
+    ],
+    "version": "0.0.0",
+    "scripts": {
+      "test": "npm run test --workspaces --if-present",
+      "dev:backend": "npm run dev -w @tech4humans/backend",
+      "dev:frontend": "npm run dev -w @tech4humans/frontend",
+      "build:backend": "npm run build -w @tech4humans/backend",
+      "build:frontend": "npm run build -w @tech4humans/frontend"
+    },
+    "workspaces": [
+      "frontend",
+      "backend"
+    ]
+  }

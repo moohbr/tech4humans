@@ -1,8 +1,16 @@
 {
-	"name": "@kaneo/web",
+	"name": "@tech4humans/frontend",
 	"private": true,
-	"version": "0.0.0",
 	"type": "module",
+	"license": "MIT",
+	"packageManager": "yarn@1.22.22",
+	"authors": [
+	  {
+		"name": "Matheus Araujo",
+		"email": "matheus.araujo@kukac.com.br",
+		"url": "https://github.com/moohbr"
+	  }
+	],
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc -b && vite build",
@@ -72,5 +80,9 @@
 		"tailwindcss": "^4.1.8",
 		"typescript": "~5.8.3",
 		"vite": "^6.3.5"
+	},
+	"engines": {
+		"node": "^22.16.0",
+		"yarn": "^1.22.22"
 	}
 }

@@ -1,5 +1,5 @@
 {
-  "name": "tech4humans",
+  "name": "@tech4humans/backend",
   "version": "1.0.0",
   "main": "build/infrastructure/http/index.js",
   "license": "MIT",
