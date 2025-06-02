@@ -112,7 +112,7 @@ export class Server implements IServer {
 
   private setupCors(): void {
     this.app.use((req: Request, res: Response, next: NextFunction): void => {
-      res.header("Access-Control-Allow-Origin", "https://speckead.com.br");
+      res.header("Access-Control-Allow-Origin", "*");
       res.header(
         "Access-Control-Allow-Methods",
         "GET, POST, PUT, DELETE, OPTIONS, PATCH",

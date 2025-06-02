@@ -45,7 +45,11 @@ export class LoginUseCase implements LoginUseCaseInterface {
         throw error;
       }
 
-      const token = this.authService.generateToken(user.getId().getValue());
+      const token = this.authService.generateToken({
+        id: user.getId().getValue(),
+        name: user.getName().getValue(),
+        email: user.getEmail().getValue(),
+      });
       
       logger.info("Login successful", { 
         userId: user.getId().getValue(),
