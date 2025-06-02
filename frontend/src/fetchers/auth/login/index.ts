@@ -13,6 +13,7 @@ export const login = async (credentials: LoginUserDTO) => {
     },
     body: JSON.stringify(credentials),
   });
-
-  return await handleResponse<LoginUserResponse>(response);
-}   
+  
+  const result = await handleResponse<LoginUserResponse>(response);
+  return result;
+}

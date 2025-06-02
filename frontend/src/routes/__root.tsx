@@ -2,34 +2,41 @@ import type { QueryClient } from "@tanstack/react-query";
 import {
   Outlet,
   createRootRouteWithContext,
-  // redirect,
+  redirect,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
+import { User } from "@/types/user/types";
+
+const PUBLIC_ROUTES = ["/auth/sign-in", "/auth/sign-up"];
+const DEFAULT_AUTH_ROUTE = "/auth/sign-in";
+const DEFAULT_PROTECTED_ROUTE = "/users/dashboard";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
-  // user: LoggedInUser | null | undefined;
+  user: User | null;
 }>()({
   component: RootComponent,
-  // async beforeLoad({ context: { user }, location }) {
-  async beforeLoad() {
-  //   const isRouteUnprotected = location.pathname.includes("auth");
-  //   const isOnDashboard = location.pathname.includes("dashboard");
+  async beforeLoad({ context: { user }, location }) {
+    const isPublicRoute = PUBLIC_ROUTES.includes(location.pathname);
+    const isRootRoute = location.pathname === "/";
 
-    // throw redirect({
-    //   to: "/auth/sign-in",
-    // });
-    // if (user === null && !isRouteUnprotected) {
-    //   throw redirect({
-    //     to: "/auth/sign-in",
-    //   });
-    // }
+    if (user && (isPublicRoute || isRootRoute)) {
+      throw redirect({
+        to: DEFAULT_PROTECTED_ROUTE,
+      });
+    }
 
-    // if (user && !isOnDashboard) {
-    //   throw redirect({
-    //     to: "/dashboard",
-    //   });
-    // }
+    if (!user && !isPublicRoute) {
+      throw redirect({
+        to: DEFAULT_AUTH_ROUTE,
+        search: {
+          redirect: location.pathname,
+        },
+      });
+    }
+    return {
+      user,
+    };
   },
 });
 

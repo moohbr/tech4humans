@@ -3,14 +3,21 @@ import { login } from '@/fetchers/auth/login';
 import { useAuth } from '@/contexts/auth';
 import { LoginCredentials } from './types';
 
-export function useLogin() {
+export function useLogin()  {
   const { login: setAuth } = useAuth();
-
+  
   return useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
       const response = await login(credentials);
-      setAuth(response.data?.token ?? "");
+      
+      const token = response.data?.token;
+      
+      if (!token) {
+        throw new Error('No authentication token received from server');
+      }
+      
+      await setAuth(token);
       return response;
     },
   });
-} 
+}

@@ -1,17 +1,23 @@
 import { AccountType } from "./enum";
+import { Bank } from "../bank/types";
 
-
-export type Account = {
-    id: number;
+export interface Account {
+    id: string;
     name: string;
     type: AccountType;
     balance: number;
+    bank: Bank;
     createdAt: Date;
-    userId: number;
-    bankName: string;
+    updatedAt: Date;
 }
 
-export type CreateAccountDTO = Pick<Account, "name" | "type" | "balance" | "bankName">
+export type CreateAccountDTO = {
+    name: string;
+    type: AccountType;
+    balance: number;
+    bank: {
+        name: string;
+    };
+}
 
-
-export type UpdateAccountDTO = Partial<Pick<Account, "name" | "type" | "bankName">>
+export type UpdateAccountDTO = Partial<Pick<Account, "name" | "type" | "bank">>

@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useMemo } from 'react'
-import { DASHBOARD_CONSTANTS } from '@/constants/dashboard-ui'
 import { useDashboardData } from '@/hooks/queries/use-dashboard'
 import { generateBankColorMap } from '@/lib/bank-colors'
 import { DashboardHeader } from '@/components/project/dashboard/layout/header'
@@ -11,14 +10,16 @@ import { EditAccountDialog } from '@/components/project/dashboard/dialogs/edit-a
 import { DeleteAccountDialog } from '@/components/project/dashboard/dialogs/delete-account'
 import { AccountsSection } from '@/components/project/dashboard/sections/accounts'
 import { TransactionsSection } from '@/components/project/dashboard/sections/transaction'
+import { useAuth } from '@/contexts/auth'
 
 export const Route = createFileRoute('/users/dashboard')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
+  const { user } = useAuth()
   const { accounts, transactions, isLoadingAccounts, isLoadingTransactions } = useDashboardData(
-    DASHBOARD_CONSTANTS.USER_ID
+    user?.id ?? 0
   )
 
   const bankColors = useMemo(() => generateBankColorMap(accounts || []), [accounts])
@@ -51,7 +52,7 @@ function RouteComponent() {
       <NewAccountDialog />
       <TransactionDialog />
       <EditAccountDialog />
-      <DeleteAccountDialog userId={DASHBOARD_CONSTANTS.USER_ID} />
+      <DeleteAccountDialog userId={user?.id ?? 0} />
     </div>
   )
 }

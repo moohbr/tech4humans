@@ -10,7 +10,7 @@ export type User = {
 
 export type CreateUserDTO = {
     user: Pick<User, "name" | "email" | "password">;
-    account: Pick<Account, "name" | "type" | "balance" | "bankName">;
+    account: Pick<Account, "name" | "type" | "balance" | "bank">;
 }
 
 export type CreateUserResponse = User;
@@ -18,7 +18,10 @@ export type CreateUserResponse = User;
 export type LoginUserDTO = Pick<User, "email" | "password">;
 
 export type LoginUserResponse = {
-    token: string;
-}
-
+    message: string;
+    data: {
+        token: string;
+        user: User;
+    }
+  }
 export type UpdateUserDTO = Partial<Pick<User, "name" | "email" | "password">>

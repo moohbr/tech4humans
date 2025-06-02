@@ -118,7 +118,9 @@ function SignUp() {
                     type: data.account.type,
                     name: data.account.name,
                     balance: data.account.balance,
-                    bankName: data.account.bank.name
+                    bank: {
+                      name: data.account.bank.name
+                    }
                   });
                 }
               }

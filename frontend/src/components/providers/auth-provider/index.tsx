@@ -9,17 +9,25 @@ import {
 } from "react";
 import { jwtDecode } from "jwt-decode";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+interface TokenPayload {
+  userId: number;
+  iat: number;
+  exp: number;
+}
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (token: string) => void;
+  login: (token: string) => Promise<void>;
   logout: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
   token: null,
-  login: () => undefined,
+  login: async () => undefined,
   logout: () => undefined,
 });
 
@@ -28,29 +36,66 @@ function AuthProvider({ children }: PropsWithChildren) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const storedToken = localStorage.getItem('auth_token');
-    if (storedToken) {
-      try {
-        const decoded = jwtDecode<{ user: User }>(storedToken);
-        setUser(decoded.user);
-        setToken(storedToken);
-      } catch (error) {
-        console.error('Invalid token:', error);
-        localStorage.removeItem('auth_token');
-      }
+  // Function to fetch user data
+  const fetchUserData = async (userId: number, authToken: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch user data');
+      const userData = await response.json();
+      setUser(userData.data);
+      return userData.data;
+    } catch (error) {
+      logout();
+      throw error;
     }
-    setIsLoading(false);
+  };
+
+  const initializeAuth = async () => {
+    try {
+      const storedToken = localStorage.getItem('auth_token');
+      if (!storedToken) {
+        return;
+      }
+
+      const decoded = jwtDecode<TokenPayload>(storedToken);
+      if (decoded.exp * 1000 < Date.now()) {
+        throw new Error('Token expired');
+      }
+
+      setToken(storedToken);
+      await fetchUserData(decoded.userId, storedToken);
+    } catch (error) {
+      localStorage.removeItem('auth_token');
+      setToken(null);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    initializeAuth();
   }, []);
 
-  const login = (newToken: string) => {
+  const login = async (newToken: string) => {
     try {
-      const decoded = jwtDecode<{ user: User }>(newToken);
-      setUser(decoded.user);
-      setToken(newToken);
+      const decoded = jwtDecode<TokenPayload>(newToken);
+      
+      if (decoded.exp * 1000 < Date.now()) {
+        throw new Error('Token expired');
+      }
+
       localStorage.setItem('auth_token', newToken);
+      setToken(newToken);
+      await fetchUserData(decoded.userId, newToken);
     } catch (error) {
-      console.error('Invalid token:', error);
+      localStorage.removeItem('auth_token');
+      setToken(null);
+      setUser(null);
       throw new Error('Invalid authentication token');
     }
   };
