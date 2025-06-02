@@ -1,28 +1,25 @@
 import { ZodError } from "zod";
 import { CreateUserUseCase } from "./index";
 import { CreateUserRequest } from "./request";
-import { CreateUserResponse } from "./response";
 import { UserRepositoryInterface } from "@models/user/repository/interfaces";
 import { AccountRepositoryInterface } from "@models/account/repository/interfaces";
 import { BankRepositoryInterface } from "@models/bank/repository/interfaces";
 import { UserEntity } from "@models/user/entity";
 import { AccountEntity } from "@models/account/entity";
 import { BankEntity } from "@models/bank/entity";
-import { UserAlreadyExistsError } from "@errors/user/user-already-exists-error";
-import { BankNotFoundError } from "@errors/bank/bank-not-found-error";
 import { AppDataSource } from "@infrastructure/datasources/databases/typeorm";
 import { CreateUserSchemas } from "./schemas";
 import { UserId } from "@models/user/value-objects/id";
 import { AccountId } from "@models/account/value-objects/id";
 import { BankName } from "@models/bank/value-objects/name";
-
+import { AccountName } from "@models/account/value-objects/name";
 import { UserEmail } from "@models/user/value-objects/email";
 import { UserName } from "@models/user/value-objects/name";
 import { AccountBalance } from "@models/account/value-objects/balance";
 import { AccountTypeVO } from "@models/account/value-objects/type";
 import { UserPassword } from "@models/user/value-objects/password";
 import { AccountType } from "@infrastructure/datasources/databases/typeorm/models/enums";
-// Mock the dependencies
+
 jest.mock("@infrastructure/datasources/databases/typeorm");
 jest.mock("./schemas", () => ({
   CreateUserSchemas: {
@@ -92,6 +89,7 @@ describe("CreateUserUseCase", () => {
       UserName.create("John Doe"),
       UserEmail.create("john@example.com"),
       UserPassword.create("Password@123"),
+      AccountName.create("Account of Jest"),
       AccountTypeVO.create(AccountType.POUPANCA),
       AccountBalance.create(1000),
       BankName.create("Test Bank")
@@ -135,7 +133,6 @@ describe("CreateUserUseCase", () => {
   });
 
   it("should successfully create a user and account", async () => {
-    // Arrange
     const validatedData = {
       body: {
         user: {
@@ -193,10 +190,8 @@ describe("CreateUserUseCase", () => {
     } as unknown as AccountEntity;
     accountRepository.create.mockResolvedValue(mockAccount);
 
-    // Act
     const result = await useCase.execute(mockRequest);
 
-    // Assert
     expect(result.isSuccess()).toBe(true);
     expect(CreateUserSchemas.httpRequestSchema.parse).toHaveBeenCalledWith({
       body: {
@@ -222,7 +217,6 @@ describe("CreateUserUseCase", () => {
   });
 
   it("should fail if user already exists", async () => {
-    // Arrange
     const validatedData = {
       body: {
         user: {
@@ -241,16 +235,13 @@ describe("CreateUserUseCase", () => {
     (CreateUserSchemas.httpRequestSchema.parse as jest.Mock).mockReturnValue(validatedData);
     userRepository.exists.mockResolvedValue(true);
 
-    // Act
     const result = await useCase.execute(mockRequest);
 
-    // Assert
     expect(result.isSuccess()).toBe(false);
     expect(result.getMessage()).toContain("User already exists");
   });
 
   it("should fail if bank not found", async () => {
-    // Arrange
     const validatedData = {
       body: {
         user: {
@@ -270,20 +261,18 @@ describe("CreateUserUseCase", () => {
     userRepository.exists.mockResolvedValue(false);
     bankRepository.findByName.mockResolvedValue(null);
 
-    // Act
     const result = await useCase.execute(mockRequest);
 
-    // Assert
     expect(result.isSuccess()).toBe(false);
     expect(result.getMessage()).toContain("Bank not found");
   });
 
   it("should fail with validation error for invalid email", async () => {
-    // Arrange
     const invalidRequest = new CreateUserRequest(
       UserName.create("John Doe"),
       UserEmail.create("invalid-email"),
       UserPassword.create("password123"),
+      AccountName.create("Account of Jest"),
       AccountTypeVO.create(AccountType.POUPANCA),
       AccountBalance.create(1000),
       BankName.create("Test Bank")
@@ -302,21 +291,19 @@ describe("CreateUserUseCase", () => {
       throw zodError;
     });
 
-    // Act
     const result = await useCase.execute(invalidRequest);
 
-    // Assert
     expect(result.isSuccess()).toBe(false);
     expect(result.getMessage()).toBe("Validation failed");
     expect(result.getErrors()).toContain("body.user.email: Invalid email format");
   });
 
   it("should fail with validation error for invalid password", async () => {
-    // Arrange
     const invalidRequest = new CreateUserRequest(
       UserName.create("John Doe"),
       UserEmail.create("john@example.com"),
       UserPassword.create("short"),
+      AccountName.create("Account of Jest"),
       AccountTypeVO.create(AccountType.POUPANCA),
       AccountBalance.create(1000),
       BankName.create("Test Bank")
@@ -338,21 +325,19 @@ describe("CreateUserUseCase", () => {
       throw zodError;
     });
 
-    // Act
     const result = await useCase.execute(invalidRequest);
 
-    // Assert
     expect(result.isSuccess()).toBe(false);
     expect(result.getMessage()).toBe("Validation failed");
     expect(result.getErrors()).toContain("body.user.password: Password must be at least 8 characters long");
   });
 
   it("should fail with validation error for invalid account balance", async () => {
-    // Arrange
     const invalidRequest = new CreateUserRequest(
       UserName.create("John Doe"),
       UserEmail.create("john@example.com"),
       UserPassword.create("Password@123"),
+      AccountName.create("Account of Jest"),
       AccountTypeVO.create(AccountType.POUPANCA),
       AccountBalance.create(-100),
       BankName.create("Test Bank")
@@ -403,16 +388,13 @@ describe("CreateUserUseCase", () => {
     (CreateUserSchemas.httpRequestSchema.parse as jest.Mock).mockReturnValue(validatedData);
     userRepository.exists.mockRejectedValue(new Error("Database connection failed"));
 
-    // Act
     const result = await useCase.execute(mockRequest);
 
-    // Assert
     expect(result.isSuccess()).toBe(false);
     expect(result.getMessage()).toBe("Database connection failed");
   });
 
   it("should handle transaction rollback on error", async () => {
-    // Arrange
     const validatedData = {
       body: {
         user: {
@@ -436,7 +418,6 @@ describe("CreateUserUseCase", () => {
     } as BankEntity;
     bankRepository.findByName.mockResolvedValue(mockBank);
 
-    // Mock user creation success but account creation failure
     const mockUser = {
       id: { getValue: () => 123 },
       name: { getValue: () => "John Doe" },
@@ -452,10 +433,8 @@ describe("CreateUserUseCase", () => {
     userRepository.create.mockResolvedValue(mockUser);
     accountRepository.create.mockRejectedValue(new Error("Account creation failed"));
 
-    // Act
     const result = await useCase.execute(mockRequest);
 
-    // Assert
     expect(result.isSuccess()).toBe(false);
     expect(result.getMessage()).toBe("Account creation failed");
     expect(AppDataSource.transaction).toHaveBeenCalled();

@@ -1,6 +1,7 @@
 import { AccountEntity } from "@models/account/entity";
 import { AccountRepositoryInterface } from "@models/account/repository/interfaces";
 import { AccountBalance } from "@models/account/value-objects/balance";
+import { AccountName } from "@models/account/value-objects/name";
 import { AccountTypeVO } from "@models/account/value-objects/type";
 import { BankName } from "@models/bank/value-objects/name";
 import { UserRepositoryInterface } from "@models/user/repository/interfaces";
@@ -43,19 +44,21 @@ describe("AddAccountToUserUseCase", () => {
   const accountType = AccountTypeVO.create("Poupança");
   const balance = AccountBalance.create(1000);
   const bankName = BankName.create("Bank of Jest");
-  
+  const accountName = AccountName.create("Account of Jest");
   const request = new AddAccountToUserRequest(
     userId,
     accountType,
     balance,
-    bankName
+    bankName,
+    accountName
   );
 
   const fakeAccount = AccountEntity.create(
+    accountName.getValue(),
     accountType.getValue(),
     balance.getValue(),
     userId.getValue(),
-    bankName.getValue()
+    bankName.getValue(),
   );
 
   beforeEach(() => {
@@ -69,8 +72,7 @@ describe("AddAccountToUserUseCase", () => {
     const response = await useCase.execute(request);
 
     if (!response.isSuccess()) {
-      // console.log("Error:", response.getError?.());
-      // console.log("Validation Errors:", response.getValidationErrors?.());
+     
     }
 
     expect(response.isSuccess()).toBe(true);
@@ -86,14 +88,13 @@ describe("AddAccountToUserUseCase", () => {
 
     const response = await useCase.execute(request);
 
-
     expect(response.isSuccess()).toBe(false);
     
-    const validationErrors = response.getValidationErrors();
-    if (validationErrors && validationErrors.length > 0) {
+    const errors = response.getErrors();
+    if (errors && errors.length > 0) {
       fail('Expected user not found error, but got validation errors');
     } else {
-      const errorMessage = response.getError?.();
+      const errorMessage = response.getMessage();
       expect(errorMessage).toBeDefined();
       expect(errorMessage).toMatch(`User with ID ${userId.getValue()} not found`);
     }
@@ -114,7 +115,7 @@ describe("AddAccountToUserUseCase", () => {
       
       const response = await useCase.execute(invalidRequest);
       expect(response.isSuccess()).toBe(false);
-      expect(response.getValidationErrors?.()?.length).toBeGreaterThan(0);
+      expect(response.getErrors().length).toBeGreaterThan(0);
       
     } catch (error) {
       // console.log("Caught error:", error);

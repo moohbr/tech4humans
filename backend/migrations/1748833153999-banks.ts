@@ -12,6 +12,11 @@ export class Banks1748833153999 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`DELETE FROM banks WHERE name = 'Banco do Brasil'`);
+        await queryRunner.query(`DELETE FROM banks WHERE name = 'Nubank'`);
+        await queryRunner.query(`DELETE FROM banks WHERE name = 'Bradesco'`);
+        await queryRunner.query(`DELETE FROM banks WHERE name = 'Santander'`);
+        await queryRunner.query(`DELETE FROM banks WHERE name = 'Itaú'`);
     }
 
 }

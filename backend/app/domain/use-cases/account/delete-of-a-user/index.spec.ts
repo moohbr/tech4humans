@@ -44,7 +44,7 @@ describe("DeleteAccountOfUserUseCase", () => {
     const response = await useCase.execute(request);
 
     expect(response.isSuccess()).toBe(false);
-    expect(response.getError()).toBeDefined();
+    expect(response.getMessage()).toBeDefined();
   });
 
   it("should handle validation failure for invalid account ID", async () => {
@@ -56,6 +56,8 @@ describe("DeleteAccountOfUserUseCase", () => {
       });
       
       const response = await useCase.execute(invalidRequest);
+      expect(response.isSuccess()).toBe(false);
+      expect(response.getErrors().length).toBeGreaterThan(0);
     } catch (error) {
       expect(error).toBeDefined();
     }

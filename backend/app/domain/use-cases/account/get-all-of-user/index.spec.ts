@@ -19,15 +19,16 @@ describe("GetAllAccountsOfUserUseCase", () => {
   
   const userId = UserId.create(1);
   const request = new GetAllAccountsOfUserRequest(userId);
-
   const mockAccounts = [
     AccountEntity.create(
-      AccountType.POUPANCA, 
+      "123456",
+      AccountType.POUPANCA,
       1000,
       userId.getValue(),
       "Bank A",
     ),
     AccountEntity.create(
+      "123456",
       AccountType.CORRENTE,
       2000,
       userId.getValue(),
@@ -55,7 +56,7 @@ describe("GetAllAccountsOfUserUseCase", () => {
     const response = await useCase.execute(request);
 
     expect(response.isSuccess()).toBe(false);
-    expect(response.getError()).toMatch(/No accounts found/);
+    expect(response.getErrors()).toMatch(/No accounts found/);
   });
 
   it("should handle validation failure for missing user ID", async () => {

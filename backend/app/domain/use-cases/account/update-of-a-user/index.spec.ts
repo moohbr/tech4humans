@@ -29,6 +29,7 @@ describe("UpdateAccountOfUserUseCase", () => {
   const requestWithoutType = new UpdateAccountOfUserRequest(accountId);
 
   const mockAccount = AccountEntity.create(
+    "123456",
     AccountType.CORRENTE,
     1000,
     1,
@@ -65,7 +66,7 @@ describe("UpdateAccountOfUserUseCase", () => {
     const response = await useCase.execute(requestWithType);
 
     expect(response.isSuccess()).toBe(false);
-    expect(response.getError()).toMatch(`Account with ID ${accountId.getValue()} not found`);
+    expect(response.getErrors()).toMatch(`Account with ID ${accountId.getValue()} not found`);
     expect(mockAccountRepository.update).not.toHaveBeenCalled();
   });
 
